@@ -40,10 +40,9 @@ h1 {
 
 .header-container h1 {
     margin: 0;
-    padding-top: 10px;
 }
 
-/* Metadata Section (Title & Instructions) */
+/* Metadata Section (Title) */
 .comparison-meta {
     display: flex;
     flex-direction: column;
@@ -52,14 +51,6 @@ h1 {
     padding: 15px;
     border-radius: 8px;
     border: 1px solid #333;
-    position: relative;
-    transition: max-height 0.3s ease-out;
-    overflow: hidden;
-    max-height: 60vh; /* Large enough to fit all content when expanded */
-}
-
-.comparison-meta.collapsed {
-    max-height: 70px; /* Height of the toggle button */
 }
 
 /* Title row styling for inline label and input */
@@ -68,7 +59,6 @@ h1 {
     align-items: center;
     gap: 10px;
     width: 100%;
-    padding-right: 20px;
 }
 
 .title-row label {
@@ -80,29 +70,6 @@ h1 {
 .title-row input {
     flex-grow: 1;
     margin-bottom: 0;
-}
-
-.meta-toggle {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-    color: #bbbbbb;
-}
-
-.meta-toggle:hover {
-    color: #ffffff;
-}
-
-.meta-toggle-icon {
-    transition: transform 0.3s ease;
-}
-
-.collapsed .meta-toggle-icon {
-    transform: rotate(180deg);
 }
 
 label { /* General label styling */
@@ -485,4 +452,134 @@ button#toggleMarkdownBtn:hover {
 /* Icon styling within buttons */
 button i {
     font-size: 1rem;
+}
+
+/* Steps container styling */
+#stepsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.transform-step {
+    display: flex;
+    flex-direction: column;
+    background-color: #222;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 12px;
+    position: relative;
+}
+
+.step-number {
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    background-color: #3700b3;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.step-instructions-label {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #bbbbbb;
+}
+
+.step-instructions {
+    width: 100%;
+    resize: vertical;
+    min-height: 80px;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.step-model-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.step-model-label {
+    font-weight: bold;
+    color: #bbbbbb;
+    margin-right: 10px;
+}
+
+.step-model-select {
+    flex-grow: 1;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 0.9rem;
+}
+
+.step-model-input {
+    flex-grow: 1;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 0.9rem;
+}
+
+.remove-step-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.remove-step-btn:hover {
+    background-color: #c82333;
+}
+
+.steps-controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.add-step-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-step-btn:hover {
+    background-color: #218838;
 }

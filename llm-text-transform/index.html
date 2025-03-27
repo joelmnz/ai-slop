@@ -30,17 +30,10 @@
         </div>
 
         <div class="comparison-meta">
-            <button class="meta-toggle" id="metaToggle">
-                <i class="fas fa-chevron-up meta-toggle-icon"></i>
-            </button>
             <div class="title-row">
                 <label for="transformTitle">Transform Title:</label>
                 <input type="text" id="transformTitle" placeholder="Enter a title for this transformation...">
             </div>
-
-            <label for="transformInstructions">Transform Instructions:</label>
-            <textarea id="transformInstructions" rows="4" placeholder="Enter instructions for the text transformation..."></textarea>
-            <div id="instructionsMarkdown" class="markdown-view" style="min-height: 200px; padding-bottom: 20px; max-height: 600px; overflow-y: auto;"></div>
         </div>
 
         <div id="transformColumns" class="columns-container">
@@ -51,18 +44,13 @@
                 <div class="markdown-view" style="display: none;"></div>
             </div>
             
-            <div class="column" id="rulesColumn">
-                <label for="transformRules" class="model-name-label">Transform Rules:</label>
-                <textarea id="transformRules" class="llm-response-textarea" placeholder="Enter transformation rules or prompts..."></textarea>
-                <div class="markdown-view" style="display: none;"></div>
-                <div class="rating-container">
-                    <label for="modelSelect" class="rating-label">Model:</label>
-                    <select id="modelSelect" class="model-select">
-                        <option value="gpt-4">GPT-4</option>
-                        <option value="gpt-3.5">GPT-3.5</option>
-                        <option value="claude">Claude</option>
-                        <option value="llama">Llama</option>
-                    </select>
+            <div class="column" id="stepsColums">
+                <label class="model-name-label">Transform Steps:</label>
+                <div id="stepsContainer">
+                    <!-- Steps will be added here by JavaScript -->
+                </div>
+                <div class="steps-controls">
+                    <button id="addStepBtn" class="add-step-btn"><i class="fas fa-plus"></i> Add Step</button>
                 </div>
             </div>
             
