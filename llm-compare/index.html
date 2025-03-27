@@ -95,7 +95,7 @@
         /* Button Styling */
         button {
             padding: 10px 15px;
-            background-color: #007bff; /* Primary button color */
+            background-color: #007bff; /* Primary button color (Add Column) */
             color: white;
             border: none;
             border-radius: 4px;
@@ -106,6 +106,13 @@
 
         button:hover {
             background-color: #0056b3; /* Darker shade on hover */
+        }
+
+        button#newBtn {
+             background-color: #6c757d; /* Grey for new/reset */
+        }
+        button#newBtn:hover {
+             background-color: #5a6268;
         }
 
         button#saveBtn {
@@ -222,6 +229,7 @@
         </div>
 
         <div class="controls">
+            <button id="newBtn">New Comparison</button> <!-- New Button Added -->
             <button id="addColumnBtn">Add Column</button>
             <button id="saveBtn">Save Comparison</button>
             <button id="loadBtn">Load Comparison</button>
@@ -230,41 +238,14 @@
         </div>
 
         <div id="comparisonColumns" class="columns-container">
-            <!-- Initial two columns -->
-            <div class="column">
-                <label class="model-name-label" for="modelName1">Model Name:</label>
-                <input type="text" id="modelName1" class="model-name-input" placeholder="e.g., GPT-4">
-
-                <label class="llm-response-label" for="llmResponse1">LLM Response:</label>
-                <textarea id="llmResponse1" class="llm-response-textarea" placeholder="Paste LLM response here..."></textarea>
-
-                <div class="rating-container">
-                     <label class="rating-label" for="rating1">Rating (1-5):</label>
-                     <input type="number" id="rating1" class="rating-input" min="1" max="5" step="1" placeholder="e.g., 4">
-                </div>
-
-                <button class="remove-column-btn">Remove Column</button>
-            </div>
-            <div class="column">
-                 <label class="model-name-label" for="modelName2">Model Name:</label>
-                <input type="text" id="modelName2" class="model-name-input" placeholder="e.g., Claude 3">
-
-                <label class="llm-response-label" for="llmResponse2">LLM Response:</label>
-                <textarea id="llmResponse2" class="llm-response-textarea" placeholder="Paste LLM response here..."></textarea>
-
-                 <div class="rating-container">
-                     <label class="rating-label" for="rating2">Rating (1-5):</label>
-                     <input type="number" id="rating2" class="rating-input" min="1" max="5" step="1" placeholder="e.g., 5">
-                </div>
-
-                <button class="remove-column-btn">Remove Column</button>
-            </div>
-            <!-- Columns will be added here dynamically -->
+            <!-- Columns will be populated by JS -->
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM References ---
+            const newBtn = document.getElementById('newBtn'); // New Button Ref
             const addColumnBtn = document.getElementById('addColumnBtn');
             const saveBtn = document.getElementById('saveBtn');
             const loadBtn = document.getElementById('loadBtn');
@@ -274,7 +255,8 @@
             const userPromptTextarea = document.getElementById('userPrompt');
             const statusMessageSpan = document.getElementById('statusMessage');
 
-            let columnCounter = 2; // Start counting from existing columns
+            // --- State ---
+            let columnCounter = 0; // Initialize counter
 
             // --- Utility Functions ---
             function setStatus(message, type = 'info', duration = 3000) {
@@ -289,7 +271,6 @@
             }
 
             // --- Column Creation ---
-            // Modified to accept optional data for population during load
             function createColumn(data = null) {
                 columnCounter++; // Increment counter for unique IDs
 
@@ -307,7 +288,7 @@
                 modelNameInput.id = modelNameId;
                 modelNameInput.classList.add('model-name-input');
                 modelNameInput.placeholder = 'Model Name';
-                if (data?.modelName) modelNameInput.value = data.modelName; // Populate if data exists
+                if (data?.modelName) modelNameInput.value = data.modelName;
 
                 const responseLabel = document.createElement('label');
                 responseLabel.classList.add('llm-response-label');
@@ -319,7 +300,7 @@
                 responseTextarea.id = responseId;
                 responseTextarea.classList.add('llm-response-textarea');
                 responseTextarea.placeholder = 'Paste LLM response here...';
-                if (data?.llmResponse) responseTextarea.value = data.llmResponse; // Populate
+                if (data?.llmResponse) responseTextarea.value = data.llmResponse;
 
                 const ratingContainer = document.createElement('div');
                 ratingContainer.classList.add('rating-container');
@@ -338,7 +319,7 @@
                 ratingInput.max = '5';
                 ratingInput.step = '1';
                 ratingInput.placeholder = 'e.g., 3';
-                 if (data?.rating) ratingInput.value = data.rating; // Populate
+                 if (data?.rating) ratingInput.value = data.rating;
 
                 ratingContainer.appendChild(ratingLabel);
                 ratingContainer.appendChild(ratingInput);
@@ -357,7 +338,61 @@
                 return columnDiv;
             }
 
+            // --- Setup Initial Columns ---
+            // Sets placeholders and IDs for newly created default columns
+            function setupInitialColumn(columnIndex, modelPlaceholder, ratingPlaceholder) {
+                // Find the specific column element based on its index in the container
+                const column = columnsContainer.children[columnIndex - 1];
+                if (!column) return;
+
+                const modelNameInput = column.querySelector('.model-name-input');
+                const modelNameLabel = column.querySelector('.model-name-label');
+                const responseTextarea = column.querySelector('.llm-response-textarea');
+                const responseLabel = column.querySelector('.llm-response-label');
+                const ratingInput = column.querySelector('.rating-input');
+                const ratingLabel = column.querySelector('.rating-label');
+
+                // IDs are already set by createColumn, just set placeholders
+                if (modelNameInput) modelNameInput.placeholder = modelPlaceholder;
+                if (ratingInput) ratingInput.placeholder = ratingPlaceholder;
+            }
+
+
+            // --- Reset Function ---
+            function resetToDefaultState() {
+                 // Clear metadata
+                comparisonTitleInput.value = '';
+                userPromptTextarea.value = '';
+
+                // Clear existing columns
+                columnsContainer.innerHTML = '';
+
+                // Reset column counter
+                columnCounter = 0;
+
+                // Add two default columns
+                const column1 = createColumn(); // Creates column with ID suffix 1
+                const column2 = createColumn(); // Creates column with ID suffix 2
+                columnsContainer.appendChild(column1);
+                columnsContainer.appendChild(column2);
+
+                // Setup placeholders for the new default columns
+                setupInitialColumn(1, 'e.g., GPT-4', 'e.g., 4');
+                setupInitialColumn(2, 'e.g., Claude 3', 'e.g., 5');
+
+                setStatus('Comparison reset to default state.', 'info');
+            }
+
+
             // --- Event Listeners ---
+
+            // New Comparison
+            newBtn.addEventListener('click', () => {
+                // Optional: Add a confirmation dialog
+                if (confirm('Are you sure you want to start a new comparison? All current data will be lost.')) {
+                    resetToDefaultState();
+                }
+            });
 
             // Add Column
             addColumnBtn.addEventListener('click', () => {
@@ -373,7 +408,7 @@
                     if (columnToRemove) {
                         columnToRemove.remove();
                         setStatus('Column removed.', 'info');
-                        // Note: columnCounter is not decremented to keep future IDs unique
+                        // Note: columnCounter is not decremented
                     }
                 }
             });
@@ -392,29 +427,25 @@
                         const modelName = column.querySelector('.model-name-input').value;
                         const llmResponse = column.querySelector('.llm-response-textarea').value;
                         const ratingValue = column.querySelector('.rating-input').value;
-                        // Parse rating as number, default to null if empty or invalid
                         const rating = ratingValue ? parseInt(ratingValue, 10) : null;
 
                         comparisonData.responses.push({
                             modelName: modelName || "Unnamed Model",
                             llmResponse: llmResponse || "",
-                            rating: (rating >= 1 && rating <= 5) ? rating : null // Basic validation
+                            rating: (rating >= 1 && rating <= 5) ? rating : null
                         });
                     });
 
-                    const jsonString = JSON.stringify(comparisonData, null, 2); // Pretty print JSON
+                    const jsonString = JSON.stringify(comparisonData, null, 2);
                     const blob = new Blob([jsonString], { type: 'application/json' });
                     const url = URL.createObjectURL(blob);
 
                     const a = document.createElement('a');
                     a.href = url;
-                    // Create a filename based on the title, sanitizing it slightly
                     const safeTitle = comparisonData.comparisonTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
                     a.download = `${safeTitle || 'llm_comparison'}.json`;
-                    document.body.appendChild(a); // Required for Firefox
+                    document.body.appendChild(a);
                     a.click();
-
-                    // Cleanup
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                     setStatus('Comparison saved successfully!', 'success');
@@ -427,15 +458,13 @@
 
             // Load Comparison - Trigger File Input
             loadBtn.addEventListener('click', () => {
-                loadFile.click(); // Open the file dialog
+                loadFile.click();
             });
 
             // Load Comparison - Handle File Selection
             loadFile.addEventListener('change', (event) => {
                 const file = event.target.files[0];
-                if (!file) {
-                    return; // No file selected
-                }
+                if (!file) return;
 
                 const reader = new FileReader();
 
@@ -443,45 +472,43 @@
                     const content = e.target.result;
                     let loadedData;
 
-                    // 1. Parse JSON
                     try {
                         loadedData = JSON.parse(content);
                     } catch (error) {
                         console.error("Error parsing JSON:", error);
                         setStatus(`Error: Could not parse file. Ensure it's valid JSON. (${error.message})`, 'error', 5000);
-                        loadFile.value = null; // Reset file input
+                        loadFile.value = null;
                         return;
                     }
 
-                    // 2. Validate Data Structure
                     if (typeof loadedData !== 'object' || loadedData === null ||
-                        typeof loadedData.comparisonTitle === 'undefined' || // Check for presence, even if empty
+                        typeof loadedData.comparisonTitle === 'undefined' ||
                         typeof loadedData.userPrompt === 'undefined' ||
                         !Array.isArray(loadedData.responses))
                     {
-                        setStatus('Error: Invalid file format. Missing required fields (comparisonTitle, userPrompt, responses array).', 'error', 5000);
-                        loadFile.value = null; // Reset file input
+                        setStatus('Error: Invalid file format. Missing required fields.', 'error', 5000);
+                        loadFile.value = null;
                         return;
                     }
 
-                    // 3. Populate Page
                     try {
-                        // Clear existing columns
+                        // Clear existing content and reset counter before loading
                         columnsContainer.innerHTML = '';
-                        columnCounter = 0; // Reset counter before adding loaded columns
+                        columnCounter = 0; // Reset counter is crucial here
 
-                        // Populate metadata
                         comparisonTitleInput.value = loadedData.comparisonTitle || "";
                         userPromptTextarea.value = loadedData.userPrompt || "";
 
-                        // Populate columns
                         if (loadedData.responses.length === 0) {
                              setStatus('Loaded comparison has no responses.', 'info');
+                             // If no responses, add the two default columns
+                             resetToDefaultState(); // Or just add two empty columns? Resetting seems safer.
+                             comparisonTitleInput.value = loadedData.comparisonTitle || ""; // Re-apply meta after reset
+                             userPromptTextarea.value = loadedData.userPrompt || "";
                         } else {
                             loadedData.responses.forEach(response => {
-                                // Basic validation of response object structure before creating column
                                 if (typeof response === 'object' && response !== null) {
-                                    const newColumn = createColumn(response); // Pass data to createColumn
+                                    const newColumn = createColumn(response);
                                     columnsContainer.appendChild(newColumn);
                                 } else {
                                     console.warn("Skipping invalid response item during load:", response);
@@ -494,47 +521,22 @@
                          console.error("Error populating page from loaded data:", error);
                          setStatus(`Error applying loaded data: ${error.message}`, 'error', 5000);
                     } finally {
-                         loadFile.value = null; // Reset file input regardless of success/failure in population
+                         loadFile.value = null;
                     }
                 };
 
                 reader.onerror = (e) => {
                     console.error("Error reading file:", e);
                     setStatus(`Error reading file: ${reader.error}`, 'error', 5000);
-                    loadFile.value = null; // Reset file input
+                    loadFile.value = null;
                 };
 
-                reader.readAsText(file); // Start reading the file
+                reader.readAsText(file);
             });
 
 
-            // --- Initial Setup ---
-            // Add unique IDs and link labels for initial columns for consistency
-            function setupInitialColumn(index, modelPlaceholder, ratingPlaceholder) {
-                const column = columnsContainer.children[index - 1];
-                if (!column) return;
-
-                const modelNameInput = column.querySelector('.model-name-input');
-                const modelNameLabel = column.querySelector('.model-name-label');
-                const responseTextarea = column.querySelector('.llm-response-textarea');
-                const responseLabel = column.querySelector('.llm-response-label');
-                const ratingInput = column.querySelector('.rating-input');
-                const ratingLabel = column.querySelector('.rating-label');
-
-                modelNameInput.id = `modelName${index}`;
-                modelNameLabel.htmlFor = `modelName${index}`;
-                modelNameInput.placeholder = modelPlaceholder;
-
-                responseTextarea.id = `llmResponse${index}`;
-                responseLabel.htmlFor = `llmResponse${index}`;
-
-                ratingInput.id = `rating${index}`;
-                ratingLabel.htmlFor = `rating${index}`;
-                ratingInput.placeholder = ratingPlaceholder;
-            }
-
-            setupInitialColumn(1, 'e.g., GPT-4', 'e.g., 4');
-            setupInitialColumn(2, 'e.g., Claude 3', 'e.g., 5');
+            // --- Initial Page Load ---
+            resetToDefaultState(); // Initialize the page with the default state
 
         });
     </script>
