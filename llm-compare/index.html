@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Response Comparison</title>
+    <style>
+        /* Basic Reset and Dark Theme */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #121212; /* Dark background */
+            color: #e0e0e0; /* Light text */
+            font-size: 16px;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 20px; /* Space between sections */
+            flex-grow: 1; /* Allow container to grow */
+            overflow: hidden; /* Prevent body scrollbars */
+        }
+
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        /* Metadata Section (Title & Prompt) */
+        .comparison-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        label { /* General label styling */
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #bbbbbb;
+            display: block; /* Ensure label takes its own line */
+        }
+
+        /* Input and Textarea Styling */
+        input[type="text"],
+        input[type="number"], /* Added number input styling */
+        textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: #2a2a2a; /* Darker input background */
+            color: #e0e0e0; /* Light text */
+            border: 1px solid #444; /* Subtle border */
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 10px; /* Add margin below inputs */
+        }
+        input[type="number"] {
+             width: auto; /* Allow number input to size naturally */
+             min-width: 60px; /* Ensure it's not too small */
+             margin-bottom: 0; /* Reset margin for rating input container */
+        }
+
+
+        textarea {
+            resize: vertical; /* Allow vertical resize */
+            min-height: 60px; /* Minimum height for prompt */
+            margin-bottom: 0; /* Reset margin for textareas */
+        }
+
+        /* Controls Section */
+        .controls {
+            display: flex;
+            gap: 10px; /* Space between buttons */
+            align-items: center; /* Align items vertically */
+            padding-bottom: 10px; /* Space below button */
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+        }
+
+        /* Button Styling */
+        button {
+            padding: 10px 15px;
+            background-color: #007bff; /* Primary button color */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3; /* Darker shade on hover */
+        }
+
+        button#saveBtn {
+             background-color: #28a745; /* Green for save */
+        }
+        button#saveBtn:hover {
+             background-color: #218838;
+        }
+
+        button#loadBtn {
+             background-color: #ffc107; /* Yellow for load */
+             color: #212529; /* Dark text for yellow button */
+        }
+        button#loadBtn:hover {
+             background-color: #e0a800;
+        }
+
+
+        button.remove-column-btn {
+            background-color: #dc3545; /* Red for remove */
+            margin-top: 15px; /* Increased space above remove button */
+            align-self: flex-start; /* Align button left within column */
+        }
+
+        button.remove-column-btn:hover {
+            background-color: #c82333;
+        }
+
+        /* Status Message Area */
+        #statusMessage {
+            margin-left: 15px; /* Space it from buttons */
+            font-size: 0.9rem;
+            color: #ffc107; /* Warning/info color */
+        }
+        #statusMessage.success {
+            color: #28a745; /* Success color */
+        }
+        #statusMessage.error {
+            color: #dc3545; /* Error color */
+        }
+
+
+        /* Columns Container */
+        .columns-container {
+            display: flex;
+            gap: 15px; /* Space between columns */
+            flex-grow: 1; /* Takes remaining vertical space */
+            overflow-x: auto; /* Allow horizontal scrolling if columns exceed width */
+            overflow-y: hidden; /* Prevent vertical scrolling here, handled by textareas */
+            padding-bottom: 10px; /* Padding at the bottom */
+            border-top: 1px solid #333; /* Separator line */
+            padding-top: 15px;
+        }
+
+        /* Individual Column Styling */
+        .column {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 300px; /* Flex basis 300px, can grow and shrink */
+            min-width: 250px; /* Minimum width before shrinking stops */
+            background-color: #1e1e1e; /* Slightly lighter than page bg */
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            height: 100%; /* Ensure column tries to fill container height */
+            overflow: hidden; /* Prevent column overflow */
+        }
+
+        .column .model-name-label { /* Label specific for model name */
+             margin-bottom: 5px;
+        }
+        .column .model-name-input { /* Input specific for model name */
+             margin-bottom: 15px; /* Space below model name input */
+        }
+
+        .column .llm-response-label { /* Label specific for response */
+             margin-bottom: 5px;
+        }
+        .column .llm-response-textarea { /* Textarea specific for response */
+            flex-grow: 1; /* Textarea takes remaining space in the column */
+            width: 100%;
+            height: 100%; /* Necessary for flex-grow to work correctly */
+            resize: none; /* Disable manual resize for consistency */
+            font-family: monospace; /* Often good for code/LLM output */
+            font-size: 0.9rem;
+            overflow-y: auto; /* Allow vertical scrolling within textarea */
+            margin-bottom: 15px; /* Space below textarea */
+        }
+
+        .column .rating-container { /* Container for rating label and input */
+            display: flex;
+            align-items: center; /* Align label and input vertically */
+            gap: 10px; /* Space between label and input */
+            margin-top: auto; /* Push rating to the bottom before remove btn */
+        }
+        .column .rating-label {
+            margin-bottom: 0; /* Remove default bottom margin */
+            white-space: nowrap; /* Prevent label wrapping */
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>LLM Response Comparison</h1>
+
+        <div class="comparison-meta">
+            <label for="comparisonTitle">Comparison Title:</label>
+            <input type="text" id="comparisonTitle" placeholder="Enter a title for this comparison...">
+
+            <label for="userPrompt">User Prompt:</label>
+            <textarea id="userPrompt" rows="4" placeholder="Paste the prompt used to generate the responses..."></textarea>
+        </div>
+
+        <div class="controls">
+            <button id="addColumnBtn">Add Column</button>
+            <button id="saveBtn">Save Comparison</button>
+            <button id="loadBtn">Load Comparison</button>
+            <input type="file" id="loadFile" accept=".json" style="display: none;"> <!-- Hidden file input -->
+            <span id="statusMessage"></span> <!-- For feedback -->
+        </div>
+
+        <div id="comparisonColumns" class="columns-container">
+            <!-- Initial two columns -->
+            <div class="column">
+                <label class="model-name-label" for="modelName1">Model Name:</label>
+                <input type="text" id="modelName1" class="model-name-input" placeholder="e.g., GPT-4">
+
+                <label class="llm-response-label" for="llmResponse1">LLM Response:</label>
+                <textarea id="llmResponse1" class="llm-response-textarea" placeholder="Paste LLM response here..."></textarea>
+
+                <div class="rating-container">
+                     <label class="rating-label" for="rating1">Rating (1-5):</label>
+                     <input type="number" id="rating1" class="rating-input" min="1" max="5" step="1" placeholder="e.g., 4">
+                </div>
+
+                <button class="remove-column-btn">Remove Column</button>
+            </div>
+            <div class="column">
+                 <label class="model-name-label" for="modelName2">Model Name:</label>
+                <input type="text" id="modelName2" class="model-name-input" placeholder="e.g., Claude 3">
+
+                <label class="llm-response-label" for="llmResponse2">LLM Response:</label>
+                <textarea id="llmResponse2" class="llm-response-textarea" placeholder="Paste LLM response here..."></textarea>
+
+                 <div class="rating-container">
+                     <label class="rating-label" for="rating2">Rating (1-5):</label>
+                     <input type="number" id="rating2" class="rating-input" min="1" max="5" step="1" placeholder="e.g., 5">
+                </div>
+
+                <button class="remove-column-btn">Remove Column</button>
+            </div>
+            <!-- Columns will be added here dynamically -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const addColumnBtn = document.getElementById('addColumnBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const loadBtn = document.getElementById('loadBtn');
+            const loadFile = document.getElementById('loadFile');
+            const columnsContainer = document.getElementById('comparisonColumns');
+            const comparisonTitleInput = document.getElementById('comparisonTitle');
+            const userPromptTextarea = document.getElementById('userPrompt');
+            const statusMessageSpan = document.getElementById('statusMessage');
+
+            let columnCounter = 2; // Start counting from existing columns
+
+            // --- Utility Functions ---
+            function setStatus(message, type = 'info', duration = 3000) {
+                statusMessageSpan.textContent = message;
+                statusMessageSpan.className = type; // 'info', 'success', 'error'
+                if (duration > 0) {
+                    setTimeout(() => {
+                        statusMessageSpan.textContent = '';
+                        statusMessageSpan.className = '';
+                    }, duration);
+                }
+            }
+
+            // --- Column Creation ---
+            // Modified to accept optional data for population during load
+            function createColumn(data = null) {
+                columnCounter++; // Increment counter for unique IDs
+
+                const columnDiv = document.createElement('div');
+                columnDiv.classList.add('column');
+
+                const modelNameLabel = document.createElement('label');
+                modelNameLabel.classList.add('model-name-label');
+                modelNameLabel.textContent = 'Model Name:';
+                const modelNameId = `modelName${columnCounter}`;
+                modelNameLabel.htmlFor = modelNameId;
+
+                const modelNameInput = document.createElement('input');
+                modelNameInput.type = 'text';
+                modelNameInput.id = modelNameId;
+                modelNameInput.classList.add('model-name-input');
+                modelNameInput.placeholder = 'Model Name';
+                if (data?.modelName) modelNameInput.value = data.modelName; // Populate if data exists
+
+                const responseLabel = document.createElement('label');
+                responseLabel.classList.add('llm-response-label');
+                responseLabel.textContent = 'LLM Response:';
+                const responseId = `llmResponse${columnCounter}`;
+                responseLabel.htmlFor = responseId;
+
+                const responseTextarea = document.createElement('textarea');
+                responseTextarea.id = responseId;
+                responseTextarea.classList.add('llm-response-textarea');
+                responseTextarea.placeholder = 'Paste LLM response here...';
+                if (data?.llmResponse) responseTextarea.value = data.llmResponse; // Populate
+
+                const ratingContainer = document.createElement('div');
+                ratingContainer.classList.add('rating-container');
+
+                const ratingLabel = document.createElement('label');
+                ratingLabel.classList.add('rating-label');
+                ratingLabel.textContent = 'Rating (1-5):';
+                const ratingId = `rating${columnCounter}`;
+                ratingLabel.htmlFor = ratingId;
+
+                const ratingInput = document.createElement('input');
+                ratingInput.type = 'number';
+                ratingInput.id = ratingId;
+                ratingInput.classList.add('rating-input');
+                ratingInput.min = '1';
+                ratingInput.max = '5';
+                ratingInput.step = '1';
+                ratingInput.placeholder = 'e.g., 3';
+                 if (data?.rating) ratingInput.value = data.rating; // Populate
+
+                ratingContainer.appendChild(ratingLabel);
+                ratingContainer.appendChild(ratingInput);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.classList.add('remove-column-btn');
+                removeBtn.textContent = 'Remove Column';
+
+                columnDiv.appendChild(modelNameLabel);
+                columnDiv.appendChild(modelNameInput);
+                columnDiv.appendChild(responseLabel);
+                columnDiv.appendChild(responseTextarea);
+                columnDiv.appendChild(ratingContainer);
+                columnDiv.appendChild(removeBtn);
+
+                return columnDiv;
+            }
+
+            // --- Event Listeners ---
+
+            // Add Column
+            addColumnBtn.addEventListener('click', () => {
+                const newColumn = createColumn();
+                columnsContainer.appendChild(newColumn);
+                setStatus('New column added.', 'info');
+            });
+
+            // Remove Column (Event Delegation)
+            columnsContainer.addEventListener('click', (event) => {
+                if (event.target.classList.contains('remove-column-btn')) {
+                    const columnToRemove = event.target.closest('.column');
+                    if (columnToRemove) {
+                        columnToRemove.remove();
+                        setStatus('Column removed.', 'info');
+                        // Note: columnCounter is not decremented to keep future IDs unique
+                    }
+                }
+            });
+
+            // Save Comparison
+            saveBtn.addEventListener('click', () => {
+                try {
+                    const comparisonData = {
+                        comparisonTitle: comparisonTitleInput.value || "Untitled Comparison",
+                        userPrompt: userPromptTextarea.value || "",
+                        responses: []
+                    };
+
+                    const columnElements = columnsContainer.querySelectorAll('.column');
+                    columnElements.forEach(column => {
+                        const modelName = column.querySelector('.model-name-input').value;
+                        const llmResponse = column.querySelector('.llm-response-textarea').value;
+                        const ratingValue = column.querySelector('.rating-input').value;
+                        // Parse rating as number, default to null if empty or invalid
+                        const rating = ratingValue ? parseInt(ratingValue, 10) : null;
+
+                        comparisonData.responses.push({
+                            modelName: modelName || "Unnamed Model",
+                            llmResponse: llmResponse || "",
+                            rating: (rating >= 1 && rating <= 5) ? rating : null // Basic validation
+                        });
+                    });
+
+                    const jsonString = JSON.stringify(comparisonData, null, 2); // Pretty print JSON
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+
+                    const a = document.createElement('a');
+                    a.href = url;
+                    // Create a filename based on the title, sanitizing it slightly
+                    const safeTitle = comparisonData.comparisonTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    a.download = `${safeTitle || 'llm_comparison'}.json`;
+                    document.body.appendChild(a); // Required for Firefox
+                    a.click();
+
+                    // Cleanup
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    setStatus('Comparison saved successfully!', 'success');
+
+                } catch (error) {
+                    console.error("Error saving comparison:", error);
+                    setStatus(`Error saving file: ${error.message}`, 'error', 5000);
+                }
+            });
+
+            // Load Comparison - Trigger File Input
+            loadBtn.addEventListener('click', () => {
+                loadFile.click(); // Open the file dialog
+            });
+
+            // Load Comparison - Handle File Selection
+            loadFile.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) {
+                    return; // No file selected
+                }
+
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    let loadedData;
+
+                    // 1. Parse JSON
+                    try {
+                        loadedData = JSON.parse(content);
+                    } catch (error) {
+                        console.error("Error parsing JSON:", error);
+                        setStatus(`Error: Could not parse file. Ensure it's valid JSON. (${error.message})`, 'error', 5000);
+                        loadFile.value = null; // Reset file input
+                        return;
+                    }
+
+                    // 2. Validate Data Structure
+                    if (typeof loadedData !== 'object' || loadedData === null ||
+                        typeof loadedData.comparisonTitle === 'undefined' || // Check for presence, even if empty
+                        typeof loadedData.userPrompt === 'undefined' ||
+                        !Array.isArray(loadedData.responses))
+                    {
+                        setStatus('Error: Invalid file format. Missing required fields (comparisonTitle, userPrompt, responses array).', 'error', 5000);
+                        loadFile.value = null; // Reset file input
+                        return;
+                    }
+
+                    // 3. Populate Page
+                    try {
+                        // Clear existing columns
+                        columnsContainer.innerHTML = '';
+                        columnCounter = 0; // Reset counter before adding loaded columns
+
+                        // Populate metadata
+                        comparisonTitleInput.value = loadedData.comparisonTitle || "";
+                        userPromptTextarea.value = loadedData.userPrompt || "";
+
+                        // Populate columns
+                        if (loadedData.responses.length === 0) {
+                             setStatus('Loaded comparison has no responses.', 'info');
+                        } else {
+                            loadedData.responses.forEach(response => {
+                                // Basic validation of response object structure before creating column
+                                if (typeof response === 'object' && response !== null) {
+                                    const newColumn = createColumn(response); // Pass data to createColumn
+                                    columnsContainer.appendChild(newColumn);
+                                } else {
+                                    console.warn("Skipping invalid response item during load:", response);
+                                }
+                            });
+                             setStatus(`Comparison loaded successfully with ${loadedData.responses.length} response(s).`, 'success');
+                        }
+
+                    } catch (error) {
+                         console.error("Error populating page from loaded data:", error);
+                         setStatus(`Error applying loaded data: ${error.message}`, 'error', 5000);
+                    } finally {
+                         loadFile.value = null; // Reset file input regardless of success/failure in population
+                    }
+                };
+
+                reader.onerror = (e) => {
+                    console.error("Error reading file:", e);
+                    setStatus(`Error reading file: ${reader.error}`, 'error', 5000);
+                    loadFile.value = null; // Reset file input
+                };
+
+                reader.readAsText(file); // Start reading the file
+            });
+
+
+            // --- Initial Setup ---
+            // Add unique IDs and link labels for initial columns for consistency
+            function setupInitialColumn(index, modelPlaceholder, ratingPlaceholder) {
+                const column = columnsContainer.children[index - 1];
+                if (!column) return;
+
+                const modelNameInput = column.querySelector('.model-name-input');
+                const modelNameLabel = column.querySelector('.model-name-label');
+                const responseTextarea = column.querySelector('.llm-response-textarea');
+                const responseLabel = column.querySelector('.llm-response-label');
+                const ratingInput = column.querySelector('.rating-input');
+                const ratingLabel = column.querySelector('.rating-label');
+
+                modelNameInput.id = `modelName${index}`;
+                modelNameLabel.htmlFor = `modelName${index}`;
+                modelNameInput.placeholder = modelPlaceholder;
+
+                responseTextarea.id = `llmResponse${index}`;
+                responseLabel.htmlFor = `llmResponse${index}`;
+
+                ratingInput.id = `rating${index}`;
+                ratingLabel.htmlFor = `rating${index}`;
+                ratingInput.placeholder = ratingPlaceholder;
+            }
+
+            setupInitialColumn(1, 'e.g., GPT-4', 'e.g., 4');
+            setupInitialColumn(2, 'e.g., Claude 3', 'e.g., 5');
+
+        });
+    </script>
+
+</body>
+</html>

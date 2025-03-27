@@ -1,0 +1,190 @@
+body { 
+    font-family: Arial, sans-serif; 
+    line-height: 1.6; 
+    padding: 20px; 
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto; 
+    background-color: #121212; 
+    color: #e0e0e0; 
+    background-image: url('path/to/your/background-pattern.png'); 
+    background-size: cover; 
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1em 0;
+}
+.loading {
+    background-color: #3700b3;
+    color: #ffffff;
+    cursor: not-allowed;
+}
+.loading::after {
+    content: '...';
+    animation: ellipsis 1.25s infinite;
+}
+@keyframes ellipsis {
+    0% { content: '...'; }
+    33% { content: ''; }
+    66% { content: '.'; }
+    100% { content: '..'; }
+}
+h1 { color: #ffffff; }
+h2 { color: #bb86fc; }
+ul.toc {
+    list-style-type: none;
+    padding: 20px; 
+    border: 1px solid #bb86fc; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    background-color: #1e1e1e; 
+    border-radius: 8px; 
+}
+ul.toc li {
+    margin: 5px 0;
+}
+ul.toc li a {
+    color: #00bfff; 
+    text-decoration: none;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); 
+}
+ul.toc li a:hover {
+    text-decoration: underline;
+}
+.release {
+    margin-bottom: 30px; 
+    border-bottom: 1px solid #333; 
+    padding-bottom: 20px; 
+    border: 1px solid #444; 
+    background-color: #1e1e1e; 
+    padding: 20px; 
+    border-radius: 8px; 
+}
+.date { 
+    color: #9e9e9e; 
+    font-size: 0.9em; 
+}
+.release-body {
+    line-height: 1.6;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+.release-body h1, .release-body h2, .release-body h3, .release-body h4, .release-body h5, .release-body h6 {
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+.release-body h1 { font-size: 2em; }
+.release-body h2 { font-size: 1.5em; }
+.release-body h3 { font-size: 1.25em; }
+.release-body ul, .release-body ol {
+    padding-left: 2em;
+}
+.release-body li {
+    margin: 0.25em 0;
+}
+.release-body pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #1e1e1e;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.release-body code {
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: #1e1e1e;
+    border-radius: 6px;
+}
+.release-body pre code {
+    padding: 0;
+    background-color: transparent;
+}
+
+@media screen and (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    .update-button, .settings-button, .clear-cache-button {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+.update-button, .settings-button, .clear-cache-button {
+    background-color: #bb86fc;
+    color: #121212;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    margin-right: 10px;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+.update-button:hover, .settings-button:hover, .clear-cache-button:hover {
+    background-color: #3700b3;
+    color: #ffffff;
+    transform: scale(1.05); 
+}
+.update-button:disabled, .settings-button:disabled, .clear-cache-button:disabled {
+    background-color: #6e6e6e;
+    cursor: not-allowed;
+}
+
+.settings-description, .settings-example {
+    margin-bottom: 10px;
+    color: #9e9e9e;
+}
+
+.settings-description code, .settings-example code {
+    background-color: #1e1e1e;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+    color: #bb86fc;
+}
+
+#repos-list {
+    width: 100%;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 10px;
+    font-family: monospace;
+    resize: vertical;
+}
+
+#repos-list::placeholder {
+    color: #666;
+}
+a {
+    color: #00bfff; 
+    text-decoration: none;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); 
+}
+a:hover {
+    text-decoration: underline;
+    transform: scale(1.05); 
+}
+
+.github-icon {
+    font-size: 2em;
+    color: #ffffff;
+    padding: 10px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+}

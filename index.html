@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to AI Slop</title>
+    <style>
+        :root {
+            --dark-bg: #1e1e1e;
+            --dark-text: #e0e0e0;
+            --dark-border: #444;
+            --dark-accent: #2a2a2a;
+            --dark-highlight: #3498db;
+            --dark-hover: #2a2a2a;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: var(--dark-bg);
+            color: var(--dark-text);
+        }
+        .container {
+            background-color: var(--dark-accent);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        h1, h2 {
+            color: var(--dark-text);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .highlight {
+            color: var(--dark-highlight);
+        }
+        .description {
+            text-align: center;
+            color: var(--dark-text);
+            margin-bottom: 2rem;
+        }
+        .projects {
+            margin-top: 2rem;
+        }
+        .project-list {
+            list-style: none;
+            padding: 0;
+        }
+        .project-list li {
+            margin: 1rem 0;
+        }
+        .project-list a {
+            display: block;
+            padding: 1rem;
+            background-color: var(--dark-bg);
+            border-radius: 5px;
+            text-decoration: none;
+            color: var(--dark-text);
+            transition: all 0.3s ease;
+        }
+        .project-list a:hover {
+            background-color: var(--dark-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to <span class="highlight">AI Slop</span></h1>
+        <div class="description">
+            <p>Exploring the messy, fascinating world of artificial intelligence experiments.</p>
+            <p>Here you'll find various AI-related projects, experiments, and learning resources.</p>
+        </div>
+        <div class="projects">
+            <h2>Available Projects</h2>
+            <ul class="project-list">
+                <li><a href="printable-markdown/index.html">Printable Markdown - Convert and print markdown documents</a></li>
+                <li><a href="github-release-notes-watcher/index.html">GitHub Release Notes Watcher - Track repository releases</a></li>
+                <li><a href="llm-compare/index.html">LLM Compare - Compare different language models</a></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
