@@ -1,4 +1,17 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Try to dynamically import the callOpenAI function
+    let callOpenAI;
+    try {
+        const module = await import('../js/llm.js');
+        callOpenAI = module.callOpenAI;
+    } catch (error) {
+        console.error('Error importing llm.js:', error);
+        // Create fallback if import fails
+        callOpenAI = async (prompt, model, maxTokens, textContext, settings) => {
+            throw new Error('LLM API module could not be loaded. Please check the console for details.');
+        };
+    }
+
     // --- DOM References ---
     const newBtn = document.getElementById('newBtn');
     const saveBtn = document.getElementById('saveBtn');
@@ -20,6 +33,28 @@ document.addEventListener('DOMContentLoaded', () => {
     let markdownViewActive = false;
     let stepCounter = 0;
 
+    // --- API Settings Cache ---
+    let apiSettings = null;
+    
+    // Retrieve API settings once and cache them
+    async function getApiSettings() {
+        if (apiSettings !== null) {
+            return apiSettings;
+        }
+        
+        if (typeof window.aiSettings === 'undefined') {
+            throw new Error('Settings manager is not available. Please refresh the page and try again.');
+        }
+        
+        apiSettings = await window.aiSettings.getSettings();
+        
+        if (!apiSettings.openaiApiKey) {
+            throw new Error('API key is missing. Please configure it in the settings.');
+        }
+        
+        return apiSettings;
+    }
+
     // --- Configure marked options ---
     marked.setOptions({
         highlight: function(code, lang) {
@@ -39,56 +74,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- LLM API Function ---
     async function callLLMAPI(prompt, model, inputText) {
         try {
-            // Check if settings manager is available
-            if (typeof window.aiSettings === 'undefined') {
-                throw new Error('Settings manager is not available. Please refresh the page and try again.');
-            }
+            // Get cached settings
+            const settings = await getApiSettings();
             
-            // Get settings
-            const settings = await window.aiSettings.getSettings();
-            const apiKey = settings.openaiApiKey;
-            const baseUrl = settings.openaiBaseUrl || 'https://api.openai.com/v1';
+            // Format the prompt correctly
+            const formattedPrompt = prompt; // nothing yet
             
-            if (!apiKey) {
-                throw new Error('API key is missing. Please configure it in the settings.');
-            }
-            
-            // Create messages format based on input
-            const messages = [
-                { 
-                    role: "system", 
-                    content: "You are a helpful assistant performing text transformation."
-                },
-                {
-                    role: "user",
-                    content: `${prompt}\n\nHere is the text to transform:\n${inputText}`
-                }
-            ];
-            
-            // Determine API endpoint based on model
-            const endpoint = '/chat/completions';
-            
-            // Make the API request
-            const response = await fetch(`${baseUrl}${endpoint}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: model,
-                    messages: messages,
-                    max_tokens: 2000
-                })
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
-            }
-            
-            const data = await response.json();
-            return data.choices[0]?.message?.content || '';
+            // Call the imported callOpenAI function with our cached settings
+            // Note: Settings are now required, not optional
+            return await callOpenAI(formattedPrompt, model, 8000, inputText, settings);
         } catch (error) {
             console.error('LLM API call error:', error);
             throw error;
@@ -106,6 +100,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     type: 'div',
                     classes: ['step-number'],
                     text: id
+                },
+                {
+                    type: 'div',
+                    classes: ['llm-response-icon'],
+                    attributes: {
+                        'data-step-id': id,
+                        'title': 'View LLM Response',
+                        'style': data?.llmResponse ? 'display: block;' : 'display: none;'
+                    },
+                    html: '<i class="fas fa-robot"></i>'
+                },
+                {
+                    type: 'input',
+                    classes: ['hidden-llm-response'],
+                    attributes: {
+                        type: 'hidden',
+                        id: `llmResponse${id}`,
+                        value: data?.llmResponse || ''
+                    }
                 },
                 {
                     type: 'label',
@@ -153,6 +166,46 @@ document.addEventListener('DOMContentLoaded', () => {
                             classes: ['run-step-btn'],
                             attributes: { 'data-step-id': id },
                             html: '<i class="fas fa-play"></i> Run Step'
+                        }
+                    ]
+                }
+            ]
+        }),
+        responsePopup: () => ({
+            type: 'div',
+            classes: ['response-popup-overlay'],
+            attributes: { id: 'responsePopupOverlay' },
+            children: [
+                {
+                    type: 'div',
+                    classes: ['response-popup'],
+                    attributes: { id: 'responsePopup' },
+                    children: [
+                        {
+                            type: 'div',
+                            classes: ['response-popup-header'],
+                            children: [
+                                {
+                                    type: 'h3',
+                                    text: 'LLM Response',
+                                },
+                                {
+                                    type: 'button',
+                                    classes: ['close-popup-btn'],
+                                    html: '<i class="fas fa-times"></i>'
+                                }
+                            ]
+                        },
+                        {
+                            type: 'div',
+                            classes: ['response-popup-content'],
+                            children: [
+                                {
+                                    type: 'pre',
+                                    classes: ['response-content'],
+                                    attributes: { id: 'responseContent' }
+                                }
+                            ]
                         }
                     ]
                 }
@@ -332,11 +385,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const stepId = step.getAttribute('data-step-id');
             const instructions = step.querySelector(`.step-instructions`).value;
             const model = step.querySelector(`.step-model-input`).value;
+            const llmResponse = step.querySelector(`.hidden-llm-response`).value;
             
             steps.push({
                 stepNumber: index + 1,
                 instructions,
-                model
+                model,
+                llmResponse
             });
         });
         return steps;
@@ -398,6 +453,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Call the LLM API function
             const response = await callLLMAPI(instructions, model, input);
             
+            // Store the response in the hidden field
+            const hiddenResponseField = step.querySelector('.hidden-llm-response');
+            hiddenResponseField.value = response;
+            
+            // Show the response icon
+            const responseIcon = step.querySelector('.llm-response-icon');
+            responseIcon.style.display = 'block';
+            
             // Update the output text area
             outputText.value = response;
             
@@ -425,6 +488,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 runButton.disabled = false;
             }
         }
+    }
+
+    // Show LLM response popup
+    function showResponsePopup(responseText) {
+        // Check if popup already exists, if not create it
+        let popupOverlay = document.getElementById('responsePopupOverlay');
+        if (!popupOverlay) {
+            const popupTemplate = templates.responsePopup();
+            popupOverlay = renderTemplate(popupTemplate);
+            document.body.appendChild(popupOverlay);
+            
+            // Add event listener to close button
+            const closeBtn = popupOverlay.querySelector('.close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popupOverlay.style.display = 'none';
+            });
+            
+            // Add event listener to close on overlay click
+            popupOverlay.addEventListener('click', (event) => {
+                if (event.target === popupOverlay) {
+                    popupOverlay.style.display = 'none';
+                }
+            });
+        }
+        
+        // Set content and show popup
+        const responseContent = document.getElementById('responseContent');
+        responseContent.textContent = responseText;
+        popupOverlay.style.display = 'flex';
     }
 
     // Transform function to run all steps in sequence
@@ -475,8 +567,27 @@ document.addEventListener('DOMContentLoaded', () => {
         setStatus('New step added', 'info');
     });
 
-    // Event delegation for step actions (run and remove)
+    // Event delegation for step actions (run, remove, and view response)
     stepsContainer.addEventListener('click', (event) => {
+        // Handle view response icon clicks
+        if (event.target.classList.contains('llm-response-icon') || 
+            event.target.closest('.llm-response-icon')) {
+            
+            const icon = event.target.classList.contains('llm-response-icon') ? 
+                event.target : event.target.closest('.llm-response-icon');
+            
+            const stepId = icon.getAttribute('data-step-id');
+            if (stepId) {
+                const step = document.querySelector(`.transform-step[data-step-id="${stepId}"]`);
+                const responseText = step.querySelector('.hidden-llm-response').value;
+                if (responseText) {
+                    showResponsePopup(responseText);
+                } else {
+                    setStatus('No LLM response available for this step', 'info');
+                }
+            }
+        }
+        
         // Handle run step button clicks
         if (event.target.classList.contains('run-step-btn') || 
             event.target.closest('.run-step-btn')) {
@@ -534,6 +645,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settingsBtn) {
         settingsBtn.addEventListener('click', () => {
             if (typeof window.aiSettings !== 'undefined') {
+                // Reset API settings cache when opening settings
+                apiSettings = null;
                 window.aiSettings.openSettings();
             } else {
                 setStatus('Settings manager is not available', 'error');
@@ -651,7 +764,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadedData.steps.forEach(step => {
                         addStep({
                             instructions: step.instructions || "",
-                            model: step.model || "gpt-4o"
+                            model: step.model || "",
+                            llmResponse: step.llmResponse || ""
                         });
                     });
                 }

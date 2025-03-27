@@ -1,9 +1,19 @@
-import { aiSettings } from './settings.js';
-
-async function callOpenAI(prompt, model = 'text-davinci-003', maxTokens = 150, textContext = '') {
+/**
+ * Call the OpenAI API with the provided settings
+ * @param {string} prompt - The prompt to send to the API
+ * @param {string} model - The model to use
+ * @param {number} maxTokens - Maximum tokens to generate
+ * @param {string} textContext - Optional context to include
+ * @param {Object} settings - Required settings object containing openaiApiKey and openaiBaseUrl
+ * @returns {Promise<string>} - The API response text
+ */
+async function callOpenAI(prompt, model = 'deepseek/deepseek-r1:free', maxTokens = 8000, textContext = '', settings) {
     try {
-        // Retrieve settings
-        const settings = await aiSettings.getSettings();
+        // Validate that settings were provided
+        if (!settings) {
+            throw new Error('Settings object is required');
+        }
+        
         const apiKey = settings.openaiApiKey;
         const baseUrl = settings.openaiBaseUrl || 'https://api.openai.com/v1';
 
@@ -23,10 +33,6 @@ async function callOpenAI(prompt, model = 'text-davinci-003', maxTokens = 150, t
             headers['X-Title'] = 'AI Slop';
         }
 
-        // Debug logging - remove in production
-        console.log('Using base URL:', baseUrl);
-        console.log('Headers (API key hidden):', {...headers, 'Authorization': 'Bearer [HIDDEN]'});
-
         // Determine if we need to use the chat or completions API format
         const isChat = model.includes('gpt') || baseUrl.includes('openrouter');
         const endpoint = isChat ? '/chat/completions' : '/completions';
@@ -45,7 +51,7 @@ async function callOpenAI(prompt, model = 'text-davinci-003', maxTokens = 150, t
             requestBody = {
                 model: model,
                 messages: [
-                                        { role: "user", content: userContent }
+                    { role: "user", content: userContent }
                 ],
                 max_tokens: maxTokens
             };
