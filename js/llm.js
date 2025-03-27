@@ -1,6 +1,6 @@
 import { aiSettings } from './settings.js';
 
-async function callOpenAI(prompt, model = 'text-davinci-003', maxTokens = 150) {
+async function callOpenAI(prompt, model = 'text-davinci-003', maxTokens = 150, textContext = '') {
     try {
         // Retrieve settings
         const settings = await aiSettings.getSettings();
@@ -19,19 +19,47 @@ async function callOpenAI(prompt, model = 'text-davinci-003', maxTokens = 150) {
         
         // Add OpenRouter specific headers if using OpenRouter
         if (baseUrl.includes('openrouter')) {
-            headers['HTTP-Referer'] = window.location.origin;
+            headers['HTTP-Referer'] = 'https://joelmnz.github.io/ai-slop/';
             headers['X-Title'] = 'AI Slop';
         }
 
+        // Determine if we need to use the chat or completions API format
+        const isChat = model.includes('gpt') || baseUrl.includes('openrouter');
+        const endpoint = isChat ? '/chat/completions' : '/completions';
+        
+        let requestBody;
+        
+        if (isChat) {
+            // Prepare the message content
+            let userContent = prompt;
+            
+            // If textContext is provided, include it in the messages
+            if (textContext) {
+                userContent = `${prompt}\n\nContext:\n${textContext}`;
+            }
+            
+            requestBody = {
+                model: model,
+                messages: [
+                    { role: "system", content: "You are a helpful assistant." },
+                    { role: "user", content: userContent }
+                ],
+                max_tokens: maxTokens
+            };
+        } else {
+            // Legacy completions API format
+            requestBody = {
+                model: model,
+                prompt: textContext ? `${prompt}\n\nContext:\n${textContext}` : prompt,
+                max_tokens: maxTokens
+            };
+        }
+
         // Prepare API request
-        const response = await fetch(`${baseUrl}/completions`, {
+        const response = await fetch(`${baseUrl}${endpoint}`, {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify({
-                model,
-                prompt,
-                max_tokens: maxTokens
-            })
+            body: JSON.stringify(requestBody)
         });
 
         // Handle response
@@ -41,7 +69,13 @@ async function callOpenAI(prompt, model = 'text-davinci-003', maxTokens = 150) {
         }
 
         const data = await response.json();
-        return data.choices[0]?.text.trim();
+        
+        // Handle different response formats
+        if (isChat) {
+            return data.choices[0]?.message?.content?.trim() || '';
+        } else {
+            return data.choices[0]?.text?.trim() || '';
+        }
     } catch (error) {
         console.error('Error calling OpenAI API:', error);
         throw error;
