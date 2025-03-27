@@ -560,6 +560,29 @@ button i {
     background-color: #c82333;
 }
 
+.run-step-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.run-step-btn:hover {
+    background-color: #218838;
+}
+
+.run-step-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
 .steps-controls {
     display: flex;
     justify-content: center;

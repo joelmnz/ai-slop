@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyBtn = document.getElementById('copyBtn');
     const toastContainer = document.getElementById('toastContainer');
     const comparisonMeta = document.querySelector('.comparison-meta');
+    const settingsBtn = document.getElementById('settings-button');
 
     // --- State ---
     let markdownViewActive = false;
@@ -34,6 +35,65 @@ document.addEventListener('DOMContentLoaded', () => {
         breaks: true,
         gfm: true
     });
+
+    // --- LLM API Function ---
+    async function callLLMAPI(prompt, model, inputText) {
+        try {
+            // Check if settings manager is available
+            if (typeof window.aiSettings === 'undefined') {
+                throw new Error('Settings manager is not available. Please refresh the page and try again.');
+            }
+            
+            // Get settings
+            const settings = await window.aiSettings.getSettings();
+            const apiKey = settings.openaiApiKey;
+            const baseUrl = settings.openaiBaseUrl || 'https://api.openai.com/v1';
+            
+            if (!apiKey) {
+                throw new Error('API key is missing. Please configure it in the settings.');
+            }
+            
+            // Create messages format based on input
+            const messages = [
+                { 
+                    role: "system", 
+                    content: "You are a helpful assistant performing text transformation."
+                },
+                {
+                    role: "user",
+                    content: `${prompt}\n\nHere is the text to transform:\n${inputText}`
+                }
+            ];
+            
+            // Determine API endpoint based on model
+            const endpoint = '/chat/completions';
+            
+            // Make the API request
+            const response = await fetch(`${baseUrl}${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: messages,
+                    max_tokens: 2000
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+            }
+            
+            const data = await response.json();
+            return data.choices[0]?.message?.content || '';
+        } catch (error) {
+            console.error('LLM API call error:', error);
+            throw error;
+        }
+    }
 
     // --- Templates ---
     const templates = {
@@ -87,6 +147,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             classes: ['remove-step-btn'],
                             attributes: { 'data-step-id': id },
                             html: '<i class="fas fa-trash"></i> Remove'
+                        },
+                        {
+                            type: 'button',
+                            classes: ['run-step-btn'],
+                            attributes: { 'data-step-id': id },
+                            html: '<i class="fas fa-play"></i> Run Step'
                         }
                     ]
                 }
@@ -271,10 +337,74 @@ document.addEventListener('DOMContentLoaded', () => {
         return steps;
     }
 
-    // Placeholder for transform function
-    function transformText() {
-        // This would normally call an API or process the text
-        // For demonstration, just copy input to output with step info
+    // Run a single step
+    async function runStep(stepId) {
+        try {
+            const step = document.querySelector(`.transform-step[data-step-id="${stepId}"]`);
+            if (!step) return;
+            
+            const instructions = step.querySelector('.step-instructions').value;
+            const model = step.querySelector('.step-model-input').value;
+            const input = inputText.value;
+            
+            if (!instructions.trim()) {
+                setStatus('Instructions cannot be empty', 'error');
+                return;
+            }
+            
+            if (!input.trim()) {
+                setStatus('Input text cannot be empty', 'error');
+                return;
+            }
+            
+            // Check if settings are available
+            if (typeof window.aiSettings === 'undefined') {
+                setStatus('Settings not available. Please refresh the page.', 'error', 5000);
+                return;
+            }
+            
+            // Update UI to show processing
+            const runButton = step.querySelector('.run-step-btn');
+            const originalButtonText = runButton.innerHTML;
+            runButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            runButton.disabled = true;
+            
+            // Call the LLM API function
+            const response = await callLLMAPI(instructions, model, input);
+            
+            // Update the output text area
+            outputText.value = response;
+            
+            // If markdown view is active, update the output markdown view
+            if (markdownViewActive) {
+                const outputMarkdownView = document.querySelector('#outputColumn .markdown-view');
+                outputMarkdownView.innerHTML = marked.parse(outputText.value);
+                outputMarkdownView.querySelectorAll('pre code').forEach(block => {
+                    if (typeof hljs !== 'undefined') {
+                        hljs.highlightElement(block);
+                    }
+                });
+            }
+            
+            setStatus('Step executed successfully!', 'success');
+        } catch (error) {
+            console.error('Error running step:', error);
+            setStatus(`Error: ${error.message}`, 'error', 6000);
+        } finally {
+            // Reset button state
+            const step = document.querySelector(`.transform-step[data-step-id="${stepId}"]`);
+            if (step) {
+                const runButton = step.querySelector('.run-step-btn');
+                runButton.innerHTML = '<i class="fas fa-play"></i> Run Step';
+                runButton.disabled = false;
+            }
+        }
+    }
+
+    // Transform function to run all steps in sequence
+    async function transformText() {
+        // We could implement sequential processing of all steps here
+        // For now, just show the stub message
         const steps = getStepsData();
         let output = `Input Text: ${inputText.value}\n\n`;
         
@@ -319,8 +449,22 @@ document.addEventListener('DOMContentLoaded', () => {
         setStatus('New step added', 'info');
     });
 
-    // Remove step button (using event delegation)
+    // Event delegation for step actions (run and remove)
     stepsContainer.addEventListener('click', (event) => {
+        // Handle run step button clicks
+        if (event.target.classList.contains('run-step-btn') || 
+            event.target.closest('.run-step-btn')) {
+            
+            const button = event.target.classList.contains('run-step-btn') ? 
+                event.target : event.target.closest('.run-step-btn');
+            
+            const stepId = button.getAttribute('data-step-id');
+            if (stepId) {
+                runStep(stepId);
+            }
+        }
+        
+        // Handle remove step button clicks
         if (event.target.classList.contains('remove-step-btn') || 
             event.target.closest('.remove-step-btn')) {
             
@@ -347,6 +491,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     toggleMarkdownBtn.addEventListener('click', toggleMarkdownView);
     
+    // Settings button
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            if (typeof window.aiSettings !== 'undefined') {
+                window.aiSettings.openSettings();
+            } else {
+                setStatus('Settings manager is not available', 'error');
+            }
+        });
+    }
+
     // Update markdown view when textareas change
     document.addEventListener('input', (event) => {
         if (markdownViewActive) {

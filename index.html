@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Slop</title>
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Include settings CSS -->
+    <link rel="stylesheet" href="css/settings.css">
     <style>
         :root {
             --dark-bg: #1e1e1e;
@@ -70,7 +74,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to <span class="highlight">AI Slop</span></h1>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>Welcome to <span class="highlight">AI Slop</span></h1>
+            <button id="settings-button">
+                <i class="fas fa-cog"></i> Settings
+            </button>
+        </div>
         <div class="description">
             <p>Exploring the messy world of ai generated tools.</p>
             <p>Here you'll find various AI-related tools.</p>
@@ -85,5 +94,8 @@
             </ul>
         </div>
     </div>
+    
+    <!-- Include settings JavaScript -->
+    <script src="js/settings.js"></script>
 </body>
 </html>
