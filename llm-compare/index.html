@@ -179,84 +179,112 @@
                 setStatus(markdownViewActive ? 'Showing rendered markdown' : 'Showing raw text', 'info');
             }
 
-            // --- Column Creation ---
-            function createColumn(data = null) {
-                columnCounter++; // Increment counter for unique IDs
+            // --- Template System ---
+            const templates = {
+                column: (id, data = null) => ({
+                    type: 'div',
+                    classes: ['column'],
+                    children: [
+                        {
+                            type: 'label',
+                            classes: ['model-name-label'],
+                            attributes: { for: `modelName${id}` },
+                            text: 'Model Name:'
+                        },
+                        {
+                            type: 'input',
+                            classes: ['model-name-input'],
+                            attributes: {
+                                type: 'text',
+                                id: `modelName${id}`,
+                                placeholder: 'Model Name',
+                                value: data?.modelName || ''
+                            }
+                        },
+                        {
+                            type: 'label',
+                            classes: ['llm-response-label'],
+                            attributes: { for: `llmResponse${id}` },
+                            text: 'LLM Response:'
+                        },
+                        {
+                            type: 'textarea',
+                            classes: ['llm-response-textarea'],
+                            attributes: {
+                                id: `llmResponse${id}`,
+                                placeholder: 'Paste LLM response here...',
+                                value: data?.llmResponse || ''
+                            }
+                        },
+                        {
+                            type: 'div',
+                            classes: ['markdown-view'],
+                            attributes: {
+                                style: markdownViewActive ? 'display: block;' : 'display: none;'
+                            },
+                            html: data?.llmResponse && markdownViewActive ? marked.parse(data.llmResponse) : ''
+                        },
+                        {
+                            type: 'div',
+                            classes: ['rating-container'],
+                            children: [
+                                {
+                                    type: 'label',
+                                    classes: ['rating-label'],
+                                    attributes: { for: `rating${id}` },
+                                    text: 'Rating (1-5):'
+                                },
+                                {
+                                    type: 'input',
+                                    classes: ['rating-input'],
+                                    attributes: {
+                                        type: 'number',
+                                        id: `rating${id}`,
+                                        min: '1',
+                                        max: '5',
+                                        step: '1',
+                                        placeholder: 'e.g., 3',
+                                        value: data?.rating || ''
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            type: 'button',
+                            classes: ['remove-column-btn'],
+                            html: '<i class="fas fa-trash-alt"></i> Remove Column'
+                        }
+                    ]
+                })
+            };
 
-                const columnDiv = document.createElement('div');
-                columnDiv.classList.add('column');
-
-                const modelNameLabel = document.createElement('label');
-                modelNameLabel.classList.add('model-name-label');
-                modelNameLabel.textContent = 'Model Name:';
-                const modelNameId = `modelName${columnCounter}`;
-                modelNameLabel.htmlFor = modelNameId;
-
-                const modelNameInput = document.createElement('input');
-                modelNameInput.type = 'text';
-                modelNameInput.id = modelNameId;
-                modelNameInput.classList.add('model-name-input');
-                modelNameInput.placeholder = 'Model Name';
-                if (data?.modelName) modelNameInput.value = data.modelName;
-
-                const responseLabel = document.createElement('label');
-                responseLabel.classList.add('llm-response-label');
-                responseLabel.textContent = 'LLM Response:';
-                const responseId = `llmResponse${columnCounter}`;
-                responseLabel.htmlFor = responseId;
-
-                const responseTextarea = document.createElement('textarea');
-                responseTextarea.id = responseId;
-                responseTextarea.classList.add('llm-response-textarea');
-                responseTextarea.placeholder = 'Paste LLM response here...';
-                if (data?.llmResponse) responseTextarea.value = data.llmResponse;
-                
-                // Create markdown view div but keep it hidden
-                const markdownView = document.createElement('div');
-                markdownView.classList.add('markdown-view');
-                if (data?.llmResponse && markdownViewActive) {
-                    markdownView.innerHTML = marked.parse(data.llmResponse);
-                    markdownView.style.display = 'block';
-                    responseTextarea.style.display = 'none';
-                } else {
-                    markdownView.style.display = 'none';
+            // --- Renderer Function ---
+            function renderTemplate(template, parent = null) {
+                const element = document.createElement(template.type);
+                if (template.classes) element.classList.add(...template.classes);
+                if (template.attributes) {
+                    Object.entries(template.attributes).forEach(([key, value]) => {
+                        if (key === 'value' && (template.type === 'textarea' || template.type === 'input')) {
+                            element.value = value;
+                        } else if (value !== undefined) {
+                            element.setAttribute(key, value);
+                        }
+                    });
                 }
+                if (template.text) element.textContent = template.text;
+                if (template.html) element.innerHTML = template.html;
+                if (template.children) {
+                    template.children.forEach(childTemplate => renderTemplate(childTemplate, element));
+                }
+                if (parent) parent.appendChild(element);
+                return element;
+            }
 
-                const ratingContainer = document.createElement('div');
-                ratingContainer.classList.add('rating-container');
-
-                const ratingLabel = document.createElement('label');
-                ratingLabel.classList.add('rating-label');
-                ratingLabel.textContent = 'Rating (1-5):';
-                const ratingId = `rating${columnCounter}`;
-                ratingLabel.htmlFor = ratingId;
-
-                const ratingInput = document.createElement('input');
-                ratingInput.type = 'number';
-                ratingInput.id = ratingId;
-                ratingInput.classList.add('rating-input');
-                ratingInput.min = '1';
-                ratingInput.max = '5';
-                ratingInput.step = '1';
-                ratingInput.placeholder = 'e.g., 3';
-                 if (data?.rating) ratingInput.value = data.rating;
-
-                ratingContainer.appendChild(ratingLabel);
-                ratingContainer.appendChild(ratingInput);
-
-                const removeBtn = document.createElement('button');
-                removeBtn.classList.add('remove-column-btn');
-                removeBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Remove Column';
-
-                columnDiv.appendChild(modelNameLabel);
-                columnDiv.appendChild(modelNameInput);
-                columnDiv.appendChild(responseLabel);
-                columnDiv.appendChild(responseTextarea);
-                columnDiv.appendChild(markdownView);
-                columnDiv.appendChild(ratingContainer);
-                columnDiv.appendChild(removeBtn);
-
-                return columnDiv;
+            // --- Refactored Column Creation ---
+            function createColumn(data = null) {
+                columnCounter++;
+                const columnTemplate = templates.column(columnCounter, data);
+                return renderTemplate(columnTemplate);
             }
 
             // --- Setup Initial Columns ---
