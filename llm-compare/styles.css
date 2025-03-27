@@ -27,9 +27,21 @@ html, body {
 }
 
 h1 {
-    text-align: center;
     color: #ffffff;
     margin-bottom: 10px;
+    text-align: left; /* Changed from center to left */
+}
+
+/* Header Container Layout */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.header-container h1 {
+    margin: 0;
+    padding-top: 10px;
 }
 
 /* Metadata Section (Title & Prompt) */
@@ -44,11 +56,11 @@ h1 {
     position: relative;
     transition: max-height 0.3s ease-out;
     overflow: hidden;
-    max-height: 1000px; /* Large enough to fit all content when expanded */
+    max-height: 60vh; /* Large enough to fit all content when expanded */
 }
 
 .comparison-meta.collapsed {
-    max-height: 40px; /* Height of the toggle button */
+    max-height: 50px; /* Height of the toggle button */
 }
 
 .meta-toggle {
@@ -110,10 +122,19 @@ textarea {
 /* Controls Section */
 .controls {
     display: flex;
-    gap: 10px; /* Space between buttons */
-    align-items: center; /* Align items vertically */
-    padding-bottom: 10px; /* Space below button */
-    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 150px;
+    max-width: 70%;
+}
+
+.controls button {
+    width: auto;
+    text-align: left;
+    padding: 8px 12px;
 }
 
 /* Button Styling */
@@ -168,19 +189,92 @@ button.remove-column-btn:hover {
     background-color: #c82333;
 }
 
-/* Status Message Area */
-#statusMessage {
-    margin-left: 15px; /* Space it from buttons */
-    font-size: 0.9rem;
-    color: #ffc107; /* Warning/info color */
-}
-#statusMessage.success {
-    color: #28a745; /* Success color */
-}
-#statusMessage.error {
-    color: #dc3545; /* Error color */
+/* Toast Notification Styling */
+#toastContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 350px;
 }
 
+.toast {
+    background-color: #333;
+    color: #fff;
+    padding: 12px 15px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 250px;
+    max-width: 100%;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+    border-left: 4px solid #007bff; /* Default info color */
+}
+
+.toast.info {
+    border-left-color: #007bff;
+}
+
+.toast.success {
+    border-left-color: #28a745;
+}
+
+.toast.error {
+    border-left-color: #dc3545;
+}
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast.hiding {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.toast-content i {
+    font-size: 1.2rem;
+}
+
+.toast-content i.fa-info-circle {
+    color: #007bff;
+}
+
+.toast-content i.fa-check-circle {
+    color: #28a745;
+}
+
+.toast-content i.fa-exclamation-circle {
+    color: #dc3545;
+}
+
+.toast-close {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 10px;
+}
+
+.toast-close:hover {
+    color: #fff;
+}
 
 /* Columns Container */
 .columns-container {

@@ -17,7 +17,18 @@
 <body>
 
     <div class="container">
-        <h1>LLM Response Comparison</h1>
+        <div class="header-container">
+            <h1>LLM Response Comparison</h1>
+            
+            <div class="controls">
+                <button id="newBtn"><i class="fas fa-file"></i> New</button>
+                <button id="saveBtn"><i class="fas fa-save"></i> Save</button>
+                <button id="loadBtn"><i class="fas fa-file-upload"></i> Load</button>
+                <input type="file" id="loadFile" accept=".json" style="display: none;"> <!-- Hidden file input -->
+                <button id="addColumnBtn"><i class="fas fa-plus-square"></i> Add Column</button>
+                <button id="toggleMarkdownBtn"><i class="fas fa-code"></i> Toggle Markdown</button>
+            </div>
+        </div>
 
         <div class="comparison-meta">
             <button class="meta-toggle" id="metaToggle">
@@ -28,23 +39,16 @@
 
             <label for="userPrompt">User Prompt:</label>
             <textarea id="userPrompt" rows="4" placeholder="Paste the prompt used to generate the responses..."></textarea>
-            <div id="userPromptMarkdown" class="markdown-view"></div>
-        </div>
-
-        <div class="controls">
-            <button id="newBtn"><i class="fas fa-file"></i> New</button>
-            <button id="saveBtn"><i class="fas fa-save"></i> Save</button>
-            <button id="loadBtn"><i class="fas fa-file-upload"></i> Load</button>
-            <input type="file" id="loadFile" accept=".json" style="display: none;"> <!-- Hidden file input -->
-            <button id="addColumnBtn"><i class="fas fa-plus-square"></i> Add Column</button>
-            <button id="toggleMarkdownBtn"><i class="fas fa-code"></i> Toggle Markdown</button>
-            <span id="statusMessage"></span> <!-- For feedback -->
+            <div id="userPromptMarkdown" class="markdown-view" style="min-height: 200px; padding-bottom: 20px; max-height: 600px; overflow-y: auto;"></div>
         </div>
 
         <div id="comparisonColumns" class="columns-container">
             <!-- Columns will be populated by JS -->
         </div>
     </div>
+
+    <!-- Toast notification container -->
+    <div id="toastContainer"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -59,7 +63,7 @@
             const comparisonTitleInput = document.getElementById('comparisonTitle');
             const userPromptTextarea = document.getElementById('userPrompt');
             let userPromptMarkdown = document.getElementById('userPromptMarkdown');
-            const statusMessageSpan = document.getElementById('statusMessage');
+            const toastContainer = document.getElementById('toastContainer');
             const metaToggle = document.getElementById('metaToggle');
             const comparisonMeta = document.querySelector('.comparison-meta');
 
@@ -90,12 +94,51 @@
 
             // --- Utility Functions ---
             function setStatus(message, type = 'info', duration = 3000) {
-                statusMessageSpan.textContent = message;
-                statusMessageSpan.className = type; // 'info', 'success', 'error'
+                // Create toast element
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                // Add appropriate icon based on type
+                let icon = 'info-circle';
+                if (type === 'success') icon = 'check-circle';
+                if (type === 'error') icon = 'exclamation-circle';
+                
+                toast.innerHTML = `
+                    <div class="toast-content">
+                        <i class="fas fa-${icon}"></i>
+                        <span>${message}</span>
+                    </div>
+                    <button class="toast-close"><i class="fas fa-times"></i></button>
+                `;
+                
+                // Add to container
+                toastContainer.appendChild(toast);
+                
+                // Add close button functionality
+                const closeButton = toast.querySelector('.toast-close');
+                closeButton.addEventListener('click', () => {
+                    toast.classList.add('hiding');
+                    setTimeout(() => {
+                        if (toast.parentNode === toastContainer) {
+                            toastContainer.removeChild(toast);
+                        }
+                    }, 300); // Match with CSS transition duration
+                });
+                
+                // Show toast with animation
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10);
+                
+                // Auto dismiss after duration
                 if (duration > 0) {
                     setTimeout(() => {
-                        statusMessageSpan.textContent = '';
-                        statusMessageSpan.className = '';
+                        toast.classList.add('hiding');
+                        setTimeout(() => {
+                            if (toast.parentNode === toastContainer) {
+                                toastContainer.removeChild(toast);
+                            }
+                        }, 300); // Match with CSS transition duration
                     }, duration);
                 }
             }
