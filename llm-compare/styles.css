@@ -1,0 +1,342 @@
+/* Basic Reset and Dark Theme */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0; /* Light text */
+    font-size: 16px;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Main Container */
+.container {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 20px; /* Space between sections */
+    flex-grow: 1; /* Allow container to grow */
+    overflow: hidden; /* Prevent body scrollbars */
+}
+
+h1 {
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 10px;
+}
+
+/* Metadata Section (Title & Prompt) */
+.comparison-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #1e1e1e;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+
+label { /* General label styling */
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #bbbbbb;
+    display: block; /* Ensure label takes its own line */
+}
+
+/* Input and Textarea Styling */
+input[type="text"],
+input[type="number"], /* Added number input styling */
+textarea {
+    width: 100%;
+    padding: 10px;
+    background-color: #2a2a2a; /* Darker input background */
+    color: #e0e0e0; /* Light text */
+    border: 1px solid #444; /* Subtle border */
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 10px; /* Add margin below inputs */
+}
+input[type="number"] {
+     width: auto; /* Allow number input to size naturally */
+     min-width: 60px; /* Ensure it's not too small */
+     margin-bottom: 0; /* Reset margin for rating input container */
+}
+
+
+textarea {
+    resize: vertical; /* Allow vertical resize */
+    min-height: 60px; /* Minimum height for prompt */
+    margin-bottom: 0; /* Reset margin for textareas */
+}
+
+/* Controls Section */
+.controls {
+    display: flex;
+    gap: 10px; /* Space between buttons */
+    align-items: center; /* Align items vertically */
+    padding-bottom: 10px; /* Space below button */
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+}
+
+/* Button Styling */
+button {
+    padding: 10px 15px;
+    background-color: #007bff; /* Primary button color (Add Column) */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
+
+button#newBtn {
+     background-color: #6c757d; /* Grey for new/reset */
+}
+button#newBtn:hover {
+     background-color: #5a6268;
+}
+
+button#saveBtn {
+     background-color: #28a745; /* Green for save */
+}
+button#saveBtn:hover {
+     background-color: #218838;
+}
+
+button#loadBtn {
+     background-color: #ffc107; /* Yellow for load */
+     color: #212529; /* Dark text for yellow button */
+}
+button#loadBtn:hover {
+     background-color: #e0a800;
+}
+
+
+button.remove-column-btn {
+    background-color: #dc3545; /* Red for remove */
+    margin-top: 15px; /* Increased space above remove button */
+    align-self: flex-start; /* Align button left within column */
+}
+
+button.remove-column-btn:hover {
+    background-color: #c82333;
+}
+
+/* Status Message Area */
+#statusMessage {
+    margin-left: 15px; /* Space it from buttons */
+    font-size: 0.9rem;
+    color: #ffc107; /* Warning/info color */
+}
+#statusMessage.success {
+    color: #28a745; /* Success color */
+}
+#statusMessage.error {
+    color: #dc3545; /* Error color */
+}
+
+
+/* Columns Container */
+.columns-container {
+    display: flex;
+    gap: 15px; /* Space between columns */
+    flex-grow: 1; /* Takes remaining vertical space */
+    overflow-x: auto; /* Allow horizontal scrolling if columns exceed width */
+    overflow-y: hidden; /* Prevent vertical scrolling here, handled by textareas */
+    padding-bottom: 10px; /* Padding at the bottom */
+    border-top: 1px solid #333; /* Separator line */
+    padding-top: 15px;
+}
+
+/* Individual Column Styling */
+.column {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 300px; /* Flex basis 300px, can grow and shrink */
+    min-width: 250px; /* Minimum width before shrinking stops */
+    background-color: #1e1e1e; /* Slightly lighter than page bg */
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    height: 100%; /* Ensure column tries to fill container height */
+    overflow: hidden; /* Prevent column overflow */
+}
+
+.column .model-name-label { /* Label specific for model name */
+     margin-bottom: 5px;
+}
+.column .model-name-input { /* Input specific for model name */
+     margin-bottom: 15px; /* Space below model name input */
+}
+
+.column .llm-response-label { /* Label specific for response */
+     margin-bottom: 5px;
+}
+.column .llm-response-textarea { /* Textarea specific for response */
+    flex-grow: 1; /* Textarea takes remaining space in the column */
+    width: 100%;
+    height: 100%; /* Necessary for flex-grow to work correctly */
+    resize: none; /* Disable manual resize for consistency */
+    font-family: monospace; /* Often good for code/LLM output */
+    font-size: 0.9rem;
+    overflow-y: auto; /* Allow vertical scrolling within textarea */
+    margin-bottom: 15px; /* Space below textarea */
+}
+
+.column .rating-container { /* Container for rating label and input */
+    display: flex;
+    align-items: center; /* Align label and input vertically */
+    gap: 10px; /* Space between label and input */
+    margin-top: auto; /* Push rating to the bottom before remove btn */
+}
+.column .rating-label {
+    margin-bottom: 0; /* Remove default bottom margin */
+    white-space: nowrap; /* Prevent label wrapping */
+}
+
+/* Markdown View Styling */
+.markdown-view {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    display: none; /* Hidden by default */
+}
+
+/* Toggle button styling */
+button#toggleMarkdownBtn {
+    background-color: #6610f2; /* Purple for markdown */
+}
+button#toggleMarkdownBtn:hover {
+    background-color: #5a00e0;
+}
+
+/* Markdown content styling */
+.markdown-view h1, .markdown-view h2, .markdown-view h3, 
+.markdown-view h4, .markdown-view h5, .markdown-view h6 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    line-height: 1.2;
+    color: #ffffff;
+}
+
+.markdown-view h1 {
+    font-size: 1.6em;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.3em;
+}
+
+.markdown-view h2 {
+    font-size: 1.4em;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.3em;
+}
+
+.markdown-view p {
+    margin-top: 0;
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.markdown-view code {
+    font-family: monospace;
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: #3a3a3a;
+    border-radius: 3px;
+}
+
+.markdown-view pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #3a3a3a;
+    border-radius: 3px;
+    margin-bottom: 16px;
+}
+
+.markdown-view pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.markdown-view blockquote {
+    padding: 0 1em;
+    color: #b3b3b3;
+    border-left: 0.25em solid #444;
+    margin: 0 0 16px 0;
+}
+
+.markdown-view ul, .markdown-view ol {
+    padding-left: 2em;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.markdown-view table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.markdown-view table th, .markdown-view table td {
+    padding: 6px 13px;
+    border: 1px solid #444;
+}
+
+.markdown-view table tr {
+    background-color: #2a2a2a;
+    border-top: 1px solid #444;
+}
+
+.markdown-view table tr:nth-child(2n) {
+    background-color: #333;
+}
+
+.markdown-view img {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.markdown-view hr {
+    height: 0.25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #444;
+    border: 0;
+}
+
+/* Dark theme for code highlighting */
+.hljs {
+    background: #2a2a2a;
+    color: #e0e0e0;
+}
+
+/* Icon styling within buttons */
+button i {
+    font-size: 1rem;
+}
