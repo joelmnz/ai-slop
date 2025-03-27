@@ -41,6 +41,37 @@ h1 {
     padding: 15px;
     border-radius: 8px;
     border: 1px solid #333;
+    position: relative;
+    transition: max-height 0.3s ease-out;
+    overflow: hidden;
+    max-height: 1000px; /* Large enough to fit all content when expanded */
+}
+
+.comparison-meta.collapsed {
+    max-height: 40px; /* Height of the toggle button */
+}
+
+.meta-toggle {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    color: #bbbbbb;
+}
+
+.meta-toggle:hover {
+    color: #ffffff;
+}
+
+.meta-toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.collapsed .meta-toggle-icon {
+    transform: rotate(180deg);
 }
 
 label { /* General label styling */
