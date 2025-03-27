@@ -231,7 +231,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function createStep(data = null) {
         stepCounter++;
         const stepTemplate = templates.step(stepCounter, data);
-        return renderTemplate(stepTemplate);
+        const newStep = renderTemplate(stepTemplate);
+        
+        // Set initial button state
+        updateRunButtonState(newStep);
+        
+        return newStep;
     }
 
     // Add a step to the container
@@ -337,18 +342,39 @@ document.addEventListener('DOMContentLoaded', () => {
         return steps;
     }
 
+    // Update run button state based on field values
+    function updateRunButtonState(step) {
+        const instructions = step.querySelector('.step-instructions').value.trim();
+        const model = step.querySelector('.step-model-input').value.trim();
+        const runButton = step.querySelector('.run-step-btn');
+        
+        if (!instructions || !model) {
+            runButton.disabled = true;
+            runButton.title = "Both instructions and model are required";
+        } else {
+            runButton.disabled = false;
+            runButton.title = "Run this transformation step";
+        }
+    }
+
     // Run a single step
     async function runStep(stepId) {
         try {
             const step = document.querySelector(`.transform-step[data-step-id="${stepId}"]`);
             if (!step) return;
             
-            const instructions = step.querySelector('.step-instructions').value;
-            const model = step.querySelector('.step-model-input').value;
+            const instructions = step.querySelector('.step-instructions').value.trim();
+            const model = step.querySelector('.step-model-input').value.trim();
             const input = inputText.value;
             
-            if (!instructions.trim()) {
+            // Input validation
+            if (!instructions) {
                 setStatus('Instructions cannot be empty', 'error');
+                return;
+            }
+            
+            if (!model) {
+                setStatus('Model cannot be empty', 'error');
                 return;
             }
             
@@ -481,6 +507,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     setStatus('Cannot remove the only step', 'error');
                 }
+            }
+        }
+    });
+
+    // Add an event listener to monitor changes to step instructions and models
+    stepsContainer.addEventListener('input', (event) => {
+        const target = event.target;
+        if (target.classList.contains('step-instructions') || 
+            target.classList.contains('step-model-input')) {
+            
+            const step = target.closest('.transform-step');
+            if (step) {
+                updateRunButtonState(step);
             }
         }
     });
