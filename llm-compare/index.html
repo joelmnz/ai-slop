@@ -440,10 +440,25 @@
                     const blob = new Blob([jsonString], { type: 'application/json' });
                     const url = URL.createObjectURL(blob);
 
+                    // Generate default filename from the comparison title
+                    const safeTitle = comparisonData.comparisonTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    const defaultFilename = `${safeTitle || 'llm_comparison'}`;
+                    
+                    // Prompt user for filename
+                    const userFilename = prompt("Enter filename for saving (without extension):", defaultFilename);
+                    
+                    // If user cancels the prompt, abort the save
+                    if (userFilename === null) {
+                        URL.revokeObjectURL(url);
+                        return;
+                    }
+                    
+                    // Use user's filename or default if empty, and sanitize
+                    const finalFilename = (userFilename.trim() || defaultFilename).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
                     const a = document.createElement('a');
                     a.href = url;
-                    const safeTitle = comparisonData.comparisonTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                    a.download = `${safeTitle || 'llm_comparison'}.json`;
+                    a.download = `${finalFilename}.json`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
