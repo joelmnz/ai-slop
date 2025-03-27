@@ -476,7 +476,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Update UI to show processing
             const runButton = step.querySelector('.run-step-btn');
-            const originalButtonText = runButton.innerHTML;
             runButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
             runButton.disabled = true;
             
@@ -576,8 +575,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 btn.disabled = true;
             });
 
-            let currentInput = inputText.value;
-            
             // Process each step in sequence
             for (let i = 0; i < steps.length; i++) {
                 // Check if cancellation was requested
@@ -586,67 +583,33 @@ document.addEventListener('DOMContentLoaded', async () => {
                     break;
                 }
 
-                const step = steps[i];
-                const stepId = step.getAttribute('data-step-id');
-                
                 // Update progress indicator
                 currentStepNum.textContent = i + 1;
+                
+                const step = steps[i];
+                const stepId = step.getAttribute('data-step-id');
                 
                 // Highlight current step
                 steps.forEach(s => s.classList.remove('active-step'));
                 step.classList.add('active-step');
                 
-                // Extract step details
+                // Skip steps with missing data
                 const instructions = step.querySelector('.step-instructions').value.trim();
                 const model = step.querySelector('.step-model-input').value.trim();
-                
-                // Skip steps with missing data
                 if (!instructions || !model) {
                     setStatus(`Skipping step ${i+1} due to missing instructions or model`, 'error', 3000);
                     continue;
                 }
                 
                 try {
-                    // Update the button to show processing
-                    const runButton = step.querySelector('.run-step-btn');
-                    runButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                    
-                    // Process the step
-                    const response = await callLLMAPI(instructions, model, currentInput);
-                    
-                    // Store the response in the hidden field
-                    const hiddenResponseField = step.querySelector('.hidden-llm-response');
-                    hiddenResponseField.value = response;
-                    
-                    // Show the response icon
-                    const responseIcon = step.querySelector('.llm-response-icon');
-                    responseIcon.style.display = 'block';
-                    
-                    // Use this response as input for the next step
-                    currentInput = response;
-                    
-                    // Update output area with the latest result
-                    outputText.value = response;
-                    
-                    // If markdown view is active, update the output markdown view
-                    if (markdownViewActive) {
-                        markdownOutput.innerHTML = marked.parse(response);
-                        markdownOutput.querySelectorAll('pre code').forEach(block => {
-                            if (typeof hljs !== 'undefined') {
-                                hljs.highlightElement(block);
-                            }
-                        });
-                    }
+                    // Run the current step using the runStep function
+                    await runStep(stepId);
                     
                     setStatus(`Step ${i+1} completed`, 'success', 2000);
                 } catch (error) {
                     console.error(`Error in step ${i+1}:`, error);
                     setStatus(`Error in step ${i+1}: ${error.message}`, 'error', 5000);
                     break; // Stop processing on error
-                } finally {
-                    // Reset step button
-                    const runButton = step.querySelector('.run-step-btn');
-                    runButton.innerHTML = '<i class="fas fa-play"></i> Run Step';
                 }
             }
             
