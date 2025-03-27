@@ -420,7 +420,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const instructions = step.querySelector('.step-instructions').value.trim();
             const model = step.querySelector('.step-model-input').value.trim();
-            const input = inputText.value;
+            
+            // Find the current step's position in the DOM sequence (not based on data-step-id)
+            // This ensures that after removing steps, the pipeline still works correctly
+            const allSteps = Array.from(document.querySelectorAll('.transform-step'));
+            const currentStepIndex = allSteps.findIndex(s => s.getAttribute('data-step-id') === stepId);
+            const isFirstStep = currentStepIndex === 0; // First in DOM order, regardless of data-step-id
+            
+            // Determine the input based on position in the transformation pipeline
+            let input;
+            if (isFirstStep) {
+                // First step in sequence always uses the input text textarea
+                input = inputText.value;
+            } else {
+                // Other steps use previous step's LLM response
+                const previousStep = allSteps[currentStepIndex - 1];
+                if (!previousStep) {
+                    setStatus('Error: Previous step not found', 'error');
+                    return;
+                }
+                
+                const previousResponse = previousStep.querySelector('.hidden-llm-response').value;
+                if (!previousResponse.trim()) {
+                    setStatus('Previous step has no output. Please run steps in order.', 'error');
+                    return;
+                }
+                
+                input = previousResponse;
+            }
             
             // Input validation
             if (!instructions) {
