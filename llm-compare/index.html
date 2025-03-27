@@ -12,9 +12,7 @@
     <!-- Add Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
-    <script>
-        hljs.highlightAll();
-    </script>
+    <!-- Remove the immediate hljs.highlightAll() call here -->
 </head>
 <body>
 
@@ -60,6 +58,11 @@
             let userPromptMarkdown = document.getElementById('userPromptMarkdown');
             const statusMessageSpan = document.getElementById('statusMessage');
 
+            // Ensure highlight.js is initialized
+            if (typeof hljs !== 'undefined') {
+                hljs.highlightAll();
+            }
+
             // --- State ---
             let columnCounter = 0; // Initialize counter
             let markdownViewActive = false; // Track markdown view state
@@ -67,6 +70,10 @@
             // --- Configure marked options ---
             marked.setOptions({
                 highlight: function(code, lang) {
+                    if (typeof hljs === 'undefined') {
+                        return code; // Fallback if hljs is not available
+                    }
+                    
                     if (lang && hljs.getLanguage(lang)) {
                         return hljs.highlight(code, { language: lang }).value;
                     }
@@ -92,6 +99,13 @@
             function toggleMarkdownView() {
                 markdownViewActive = !markdownViewActive;
                 
+                // Helper function to safely highlight code
+                const safeHighlight = (element) => {
+                    if (typeof hljs !== 'undefined') {
+                        hljs.highlightElement(element);
+                    }
+                };
+                
                 // Handle column responses
                 const columns = columnsContainer.querySelectorAll('.column');
                 columns.forEach(column => {
@@ -112,9 +126,7 @@
                         markdownView.innerHTML = marked.parse(textarea.value);
                         
                         // Highlight code blocks
-                        markdownView.querySelectorAll('pre code').forEach((block) => {
-                            hljs.highlightElement(block);
-                        });
+                        markdownView.querySelectorAll('pre code').forEach(safeHighlight);
                         
                         // Show markdown view, hide textarea
                         textarea.style.display = 'none';
@@ -138,9 +150,7 @@
                         userPromptMarkdown.innerHTML = marked.parse(userPromptTextarea.value || '');
                         
                         // Highlight code blocks in user prompt
-                        userPromptMarkdown.querySelectorAll('pre code').forEach((block) => {
-                            hljs.highlightElement(block);
-                        });
+                        userPromptMarkdown.querySelectorAll('pre code').forEach(safeHighlight);
                         
                         // Show markdown view, hide textarea for user prompt
                         userPromptTextarea.style.display = 'none';
@@ -467,12 +477,16 @@
                         
                         markdownView.innerHTML = marked.parse(event.target.value);
                         markdownView.querySelectorAll('pre code').forEach((block) => {
-                            hljs.highlightElement(block);
+                            if (typeof hljs !== 'undefined') {
+                                hljs.highlightElement(block);
+                            }
                         });
                     } else if (event.target === userPromptTextarea) {
                         userPromptMarkdown.innerHTML = marked.parse(userPromptTextarea.value);
                         userPromptMarkdown.querySelectorAll('pre code').forEach((block) => {
-                            hljs.highlightElement(block);
+                            if (typeof hljs !== 'undefined') {
+                                hljs.highlightElement(block);
+                            }
                         });
                     }
                 }
