@@ -14,7 +14,7 @@ async function callOpenAI(prompt, model = 'text-davinci-003', maxTokens = 150, t
         // Prepare headers
         const headers = {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
+            'Authorization': `Bearer ${apiKey.trim()}` // Ensure key is trimmed
         };
         
         // Add OpenRouter specific headers if using OpenRouter
@@ -22,6 +22,10 @@ async function callOpenAI(prompt, model = 'text-davinci-003', maxTokens = 150, t
             headers['HTTP-Referer'] = 'https://joelmnz.github.io/ai-slop/';
             headers['X-Title'] = 'AI Slop';
         }
+
+        // Debug logging - remove in production
+        console.log('Using base URL:', baseUrl);
+        console.log('Headers (API key hidden):', {...headers, 'Authorization': 'Bearer [HIDDEN]'});
 
         // Determine if we need to use the chat or completions API format
         const isChat = model.includes('gpt') || baseUrl.includes('openrouter');
@@ -35,14 +39,13 @@ async function callOpenAI(prompt, model = 'text-davinci-003', maxTokens = 150, t
             
             // If textContext is provided, include it in the messages
             if (textContext) {
-                userContent = `${prompt}\n\nContext:\n${textContext}`;
+                userContent = `Context:\n${textContext}\n\n${prompt}`;
             }
             
             requestBody = {
                 model: model,
                 messages: [
-                    { role: "system", content: "You are a helpful assistant." },
-                    { role: "user", content: userContent }
+                                        { role: "user", content: userContent }
                 ],
                 max_tokens: maxTokens
             };
@@ -64,8 +67,10 @@ async function callOpenAI(prompt, model = 'text-davinci-003', maxTokens = 150, t
 
         // Handle response
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`OpenAI API Error: ${errorData.error?.message || response.statusText}`);
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.error?.message || response.statusText;
+            console.error('API Response Error:', response.status, errorMessage, errorData);
+            throw new Error(`API Error: ${errorMessage}`);
         }
 
         const data = await response.json();

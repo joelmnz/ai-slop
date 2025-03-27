@@ -7,6 +7,7 @@ class SettingsManager {
     constructor() {
         this.settingsKey = 'ai_slop_settings';
         this.sessionKey = 'ai_slop_session_settings';
+        this._cryptoKey = null;
         
         // Don't initialize immediately, wait for DOM to be ready
         if (document.readyState === 'loading') {
@@ -170,7 +171,7 @@ class SettingsManager {
     /**
      * Encrypt the API key using Web Crypto API
      * @param {string} apiKey - The API key to encrypt
-     * @returns {Promise<string>} - Base64 encoded encrypted data
+     * @returns {Promise<Object>} - Object containing the encrypted key and iv
      */
     async _encryptApiKey(apiKey) {
         if (!apiKey) return '';
@@ -179,12 +180,14 @@ class SettingsManager {
             // Generate a new initialization vector for each encryption
             const iv = window.crypto.getRandomValues(new Uint8Array(12));
             
-            // Get or generate encryption key
-            const key = this._cryptoKey || await this._generateEncryptionKey();
-            this._cryptoKey = key;
+            // Generate encryption key if we don't have one
+            if (!this._cryptoKey) {
+                this._cryptoKey = await this._generateEncryptionKey();
+            }
             
             // Export the key for storage
-            const exportedKey = await window.crypto.subtle.exportKey("raw", key);
+            const exportedKey = await window.crypto.subtle.exportKey("raw", this._cryptoKey);
+            const exportedKeyBase64 = btoa(String.fromCharCode.apply(null, new Uint8Array(exportedKey)));
             
             // Convert API key string to bytes
             const encoder = new TextEncoder();
@@ -196,7 +199,7 @@ class SettingsManager {
                     name: "AES-GCM",
                     iv: iv
                 },
-                key,
+                this._cryptoKey,
                 data
             );
             
@@ -206,22 +209,38 @@ class SettingsManager {
             encryptedArray.set(new Uint8Array(encryptedData), iv.length);
             
             // Convert to Base64 for storage
-            return btoa(String.fromCharCode.apply(null, encryptedArray));
+            return {
+                encryptedKey: btoa(String.fromCharCode.apply(null, encryptedArray)),
+                keyMaterial: exportedKeyBase64
+            };
         } catch (e) {
             console.error('Encryption error:', e);
-            return '';
+            return { encryptedKey: '', keyMaterial: '' };
         }
     }
 
     /**
      * Decrypt the API key using Web Crypto API
      * @param {string} encryptedKey - Base64 encoded encrypted data
+     * @param {string} keyMaterial - Base64 encoded key material
      * @returns {Promise<string>} - Decrypted API key
      */
-    async _decryptApiKey(encryptedKey) {
-        if (!encryptedKey) return '';
+    async _decryptApiKey(encryptedKey, keyMaterial) {
+        if (!encryptedKey || !keyMaterial) return '';
         
         try {
+            // Import the key if we don't have one
+            if (!this._cryptoKey && keyMaterial) {
+                const keyData = Uint8Array.from(atob(keyMaterial), c => c.charCodeAt(0));
+                this._cryptoKey = await window.crypto.subtle.importKey(
+                    "raw",
+                    keyData,
+                    { name: "AES-GCM" },
+                    true,
+                    ["encrypt", "decrypt"]
+                );
+            }
+            
             // Convert Base64 to array
             const encryptedBytes = Uint8Array.from(atob(encryptedKey), c => c.charCodeAt(0));
             
@@ -229,20 +248,13 @@ class SettingsManager {
             const iv = encryptedBytes.slice(0, 12);
             const encryptedData = encryptedBytes.slice(12);
             
-            // Import the key
-            const key = this._cryptoKey;
-            if (!key) {
-                console.error('No encryption key available for decryption');
-                return '';
-            }
-            
             // Decrypt the data
             const decryptedData = await window.crypto.subtle.decrypt(
                 {
                     name: "AES-GCM",
                     iv: iv
                 },
-                key,
+                this._cryptoKey,
                 encryptedData
             );
             
@@ -291,16 +303,13 @@ class SettingsManager {
         const storageType = document.querySelector('input[name="storage-type"]:checked')?.value || 'session';
         
         try {
-            // Generate new key if needed
-            if (!this._cryptoKey) {
-                this._cryptoKey = await this._generateEncryptionKey();
-            }
-            
-            const encryptedKey = await this._encryptApiKey(apiKey);
+            // Encrypt the API key
+            const { encryptedKey, keyMaterial } = await this._encryptApiKey(apiKey);
             
             const settings = {
                 openaiBaseUrl: baseUrl,
-                openaiApiKey: encryptedKey,
+                encryptedApiKey: encryptedKey,
+                keyMaterial: keyMaterial,
                 storageType: storageType
             };
             
@@ -350,13 +359,11 @@ class SettingsManager {
         const localData = localStorage.getItem(this.settingsKey);
         
         let settings = {};
-        let sourceData = null;
         
         if (sessionData) {
             try {
                 settings = JSON.parse(sessionData);
                 settings.storageType = 'session';
-                sourceData = sessionData;
             } catch (e) {
                 console.error('Error parsing session settings:', e);
             }
@@ -364,34 +371,19 @@ class SettingsManager {
             try {
                 settings = JSON.parse(localData);
                 settings.storageType = 'local';
-                sourceData = localData;
             } catch (e) {
                 console.error('Error parsing local settings:', e);
             }
         }
         
-        if (settings.openaiApiKey) {
+        // If we have encrypted API key and key material, try to decrypt
+        if (settings.encryptedApiKey && settings.keyMaterial) {
             try {
-                // If we haven't loaded the key yet, try to import it
-                if (!this._cryptoKey && settings._rawKey) {
-                    const keyData = Uint8Array.from(atob(settings._rawKey), c => c.charCodeAt(0));
-                    this._cryptoKey = await window.crypto.subtle.importKey(
-                        "raw",
-                        keyData,
-                        { name: "AES-GCM" },
-                        true,
-                        ["encrypt", "decrypt"]
-                    );
-                }
-                
-                // Decrypt the API key
-                if (this._cryptoKey) {
-                    const decryptedKey = await this._decryptApiKey(settings.openaiApiKey);
-                    return {
-                        ...settings,
-                        openaiApiKey: decryptedKey
-                    };
-                }
+                const decryptedKey = await this._decryptApiKey(settings.encryptedApiKey, settings.keyMaterial);
+                return {
+                    ...settings,
+                    openaiApiKey: decryptedKey
+                };
             } catch (e) {
                 console.error('Error decrypting API key:', e);
             }

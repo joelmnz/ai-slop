@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 id: `stepModel${id}`,
                                 type: 'text',
                                 placeholder: 'e.g., gpt-4o, claude-3, llama, etc.',
-                                value: data?.model || 'gpt-4o-mini'
+                                value: data?.model || ''
                             }
                         },
                         {
