@@ -63,8 +63,15 @@
             <div class="column" id="outputColumn">
                 <label for="outputText" class="model-name-label">Output Text:</label>
                 <textarea id="outputText" class="llm-response-textarea" placeholder="Transformed text will appear here..." readonly></textarea>
-                <div class="markdown-view" style="display: none;"></div>
-                <button id="copyBtn" class="copy-button"><i class="fas fa-copy"></i> Copy Output</button>
+                
+                <div class="preview-container" style="display: none;">
+                    <div class="a4-paper" id="markdown-output"></div>
+                </div>
+                
+                <div class="output-buttons">
+                    <button id="copyBtn" class="output-button"><i class="fas fa-copy"></i> Copy Output</button>
+                    <button id="printBtn" class="output-button"><i class="fas fa-print"></i> Print</button>
+                </div>
             </div>
         </div>
     </div>

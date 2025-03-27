@@ -26,9 +26,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const transformTitle = document.getElementById('transformTitle');
     const inputText = document.getElementById('inputText');
     const outputText = document.getElementById('outputText');
+    const markdownOutput = document.getElementById('markdown-output');
+    const previewContainer = document.querySelector('.preview-container');
     const stepsContainer = document.getElementById('stepsContainer');
     const addStepBtn = document.getElementById('addStepBtn');
     const copyBtn = document.getElementById('copyBtn');
+    const printBtn = document.getElementById('printBtn');
     const toastContainer = document.getElementById('toastContainer');
     const comparisonMeta = document.querySelector('.comparison-meta');
     const settingsBtn = document.getElementById('settings-button');
@@ -300,7 +303,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Add a step to the container
     function addStep(data = null) {
-        const newStep = createStep(data);
+        const steps = stepsContainer.querySelectorAll('.transform-step');
+        let defaultModel = "";
+        if (steps.length > 0) {
+            const lastStep = steps[steps.length - 1];
+            const lastModelInput = lastStep.querySelector('.step-model-input');
+            if (lastModelInput) {
+                defaultModel = lastModelInput.value;
+            }
+        }
+
+        const newStep = createStep({ ...data, model: data?.model || defaultModel });
         stepsContainer.appendChild(newStep);
         updateStepNumbers();
         return newStep;
@@ -320,34 +333,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     function toggleMarkdownView() {
         markdownViewActive = !markdownViewActive;
         
-        // Update all textareas and markdown views
-        document.querySelectorAll('.column').forEach(column => {
-            const textarea = column.querySelector('.llm-response-textarea');
-            if (!textarea) return;
-            
-            const markdownView = column.querySelector('.markdown-view');
-            if (!markdownView) return;
-            
-            if (markdownViewActive) {
-                markdownView.innerHTML = marked.parse(textarea.value || '');
-                markdownView.querySelectorAll('pre code').forEach(block => {
-                    if (typeof hljs !== 'undefined') {
-                        hljs.highlightElement(block);
-                    }
-                });
-                
-                textarea.style.display = 'none';
-                markdownView.style.display = 'block';
-            } else {
-                textarea.style.display = 'block';
-                markdownView.style.display = 'none';
-            }
-        });
-        
-        // Update button text and icon
         if (markdownViewActive) {
+            // Update the output markdown view
+            outputText.style.display = 'none';
+            previewContainer.style.display = 'block';
+            markdownOutput.innerHTML = marked.parse(outputText.value || '');
+            markdownOutput.querySelectorAll('pre code').forEach(block => {
+                if (typeof hljs !== 'undefined') {
+                    hljs.highlightElement(block);
+                }
+            });
+            
             toggleMarkdownBtn.innerHTML = '<i class="fas fa-font"></i> Show Raw Text';
         } else {
+            outputText.style.display = 'block';
+            previewContainer.style.display = 'none';
+            
             toggleMarkdownBtn.innerHTML = '<i class="fas fa-code"></i> Toggle Markdown';
         }
         
@@ -359,6 +360,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         transformTitle.value = '';
         inputText.value = '';
         outputText.value = '';
+        markdownOutput.innerHTML = '';
         
         // Clear existing steps
         stepsContainer.innerHTML = '';
@@ -367,19 +369,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Add default first step
         addStep();
         
-        // Reset markdown views
-        document.querySelectorAll('.markdown-view').forEach(view => {
-            view.innerHTML = '';
-            view.style.display = 'none';
-        });
-        
-        // Reset textareas display
-        document.querySelectorAll('.llm-response-textarea').forEach(textarea => {
-            textarea.style.display = 'block';
-        });
-        
-        markdownViewActive = false;
-        toggleMarkdownBtn.innerHTML = '<i class="fas fa-code"></i> Toggle Markdown';
+        // Reset views
+        if (markdownViewActive) {
+            outputText.style.display = 'none';
+            previewContainer.style.display = 'block';
+        } else {
+            outputText.style.display = 'block';
+            previewContainer.style.display = 'none';
+        }
         
         setStatus('Reset to default state', 'info');
     }
@@ -499,9 +496,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // If markdown view is active, update the output markdown view
             if (markdownViewActive) {
-                const outputMarkdownView = document.querySelector('#outputColumn .markdown-view');
-                outputMarkdownView.innerHTML = marked.parse(outputText.value);
-                outputMarkdownView.querySelectorAll('pre code').forEach(block => {
+                markdownOutput.innerHTML = marked.parse(response);
+                markdownOutput.querySelectorAll('pre code').forEach(block => {
                     if (typeof hljs !== 'undefined') {
                         hljs.highlightElement(block);
                     }
@@ -634,9 +630,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     
                     // If markdown view is active, update the output markdown view
                     if (markdownViewActive) {
-                        const outputMarkdownView = document.querySelector('#outputColumn .markdown-view');
-                        outputMarkdownView.innerHTML = marked.parse(response);
-                        outputMarkdownView.querySelectorAll('pre code').forEach(block => {
+                        markdownOutput.innerHTML = marked.parse(response);
+                        markdownOutput.querySelectorAll('pre code').forEach(block => {
                             if (typeof hljs !== 'undefined') {
                                 hljs.highlightElement(block);
                             }
@@ -689,6 +684,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         outputText.select();
         document.execCommand('copy');
         setStatus('Output copied to clipboard!', 'success');
+    }
+
+    // Print output function
+    function printOutput() {
+        // Make sure the markdown is rendered before printing
+        if (!markdownViewActive) {
+            // Force show the preview container and hide the textarea
+            outputText.style.display = 'none';
+            previewContainer.style.display = 'block';
+            
+            // Render the markdown
+            markdownOutput.innerHTML = marked.parse(outputText.value || '');
+            markdownOutput.querySelectorAll('pre code').forEach(block => {
+                if (typeof hljs !== 'undefined') {
+                    hljs.highlightElement(block);
+                }
+            });
+        }
+        
+        // Create a print-friendly version
+        const printContent = document.createElement('div');
+        printContent.className = 'print-content';
+        printContent.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;z-index:9999;background:white;';
+        
+        // Clone the markdown output
+        const clonedContent = markdownOutput.cloneNode(true);
+        clonedContent.style.display = 'block';
+        clonedContent.style.visibility = 'visible';
+        printContent.appendChild(clonedContent);
+        
+        // Append to body temporarily
+        document.body.appendChild(printContent);
+        
+        // Print
+        setTimeout(() => {
+            window.print();
+            
+            // Remove the temporary element after printing
+            setTimeout(() => {
+                document.body.removeChild(printContent);
+                
+                // Restore display if needed
+                if (!markdownViewActive) {
+                    previewContainer.style.display = 'none';
+                    outputText.style.display = 'block';
+                }
+            }, 500);
+        }, 300);
+        
+        setStatus('Printing document...', 'info');
     }
 
     // --- Event Listeners ---
@@ -780,6 +825,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     toggleMarkdownBtn.addEventListener('click', toggleMarkdownView);
     
+    printBtn.addEventListener('click', printOutput);
+    
     // Settings button
     if (settingsBtn) {
         settingsBtn.addEventListener('click', () => {
@@ -807,6 +854,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 });
             }
+        }
+        
+        if (markdownViewActive && event.target === outputText) {
+            markdownOutput.innerHTML = marked.parse(outputText.value || '');
+            markdownOutput.querySelectorAll('pre code').forEach(block => {
+                if (typeof hljs !== 'undefined') {
+                    hljs.highlightElement(block);
+                }
+            });
         }
     });
 

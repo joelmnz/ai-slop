@@ -712,3 +712,184 @@ button i {
     background-color: rgba(76, 175, 80, 0.1);
     box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
 }
+
+/* Add these styles for the A4 preview */
+.preview-container {
+    flex: 1;
+    overflow: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-color-alt);
+    position: relative;
+    margin-bottom: 10px;
+    height: 100%;
+}
+
+.a4-paper {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 20mm;
+    margin: 20px auto;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+    color: black;
+    overflow-wrap: break-word;
+}
+
+.output-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.output-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.output-button:hover {
+    background-color: var(--primary-color-hover);
+}
+
+/* Print styles - updated for proper A4 printing */
+@media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
+    
+    html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: white;
+    }
+    
+    .container, .header-container, .controls, .comparison-meta,
+    #stepsContainer, .steps-controls, .output-buttons, #toastContainer,
+    textarea, .column, .preview-container {
+        display: none !important;
+    }
+    
+    .a4-paper {
+        display: block !important;
+        visibility: visible !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 210mm;
+        min-height: auto;
+        padding: 15mm;
+        margin: 0;
+        box-shadow: none;
+        background-color: white;
+        color: black;
+        overflow: visible;
+        page-break-after: always;
+    }
+    
+    .a4-paper * {
+        visibility: visible !important;
+    }
+}
+
+/* Markdown styling for A4 paper */
+.a4-paper h1, .a4-paper h2, .a4-paper h3, .a4-paper h4, .a4-paper h5, .a4-paper h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    line-height: 1.2;
+}
+
+.a4-paper h1 {
+    font-size: 2em;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+}
+
+.a4-paper h2 {
+    font-size: 1.5em;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+}
+
+.a4-paper p {
+    margin-top: 0;
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.a4-paper code {
+    font-family: 'Courier New', monospace;
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: rgba(27, 31, 35, 0.05);
+    border-radius: 3px;
+}
+
+.a4-paper pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f6f8fa;
+    border-radius: 3px;
+}
+
+.a4-paper pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.a4-paper blockquote {
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: 0.25em solid #dfe2e5;
+    margin: 0 0 16px 0;
+}
+
+.a4-paper ul, .a4-paper ol {
+    padding-left: 2em;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.a4-paper table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.a4-paper table th, .a4-paper table td {
+    padding: 6px 13px;
+    border: 1px solid #dfe2e5;
+}
+
+.a4-paper table tr {
+    background-color: #fff;
+    border-top: 1px solid #c6cbd1;
+}
+
+.a4-paper table tr:nth-child(2n) {
+    background-color: #f6f8fa;
+}
+
+.a4-paper img {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.a4-paper hr {
+    height: 0.25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #e1e4e8;
+    border: 0;
+}
