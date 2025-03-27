@@ -12,7 +12,6 @@
     <!-- Add Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
-    <!-- Remove the immediate hljs.highlightAll() call here -->
 </head>
 <body>
 
@@ -22,8 +21,8 @@
             
             <div class="controls">
                 <button id="newBtn"><i class="fas fa-file"></i> New</button>
-                <button id="saveBtn"><i class="fas fa-save"></i> Save</button>
                 <button id="loadBtn"><i class="fas fa-file-upload"></i> Load</button>
+                <button id="saveBtn"><i class="fas fa-save"></i> Save</button>
                 <input type="file" id="loadFile" accept=".json" style="display: none;"> <!-- Hidden file input -->
                 <button id="addColumnBtn"><i class="fas fa-plus-square"></i> Add Column</button>
                 <button id="toggleMarkdownBtn"><i class="fas fa-code"></i> Toggle Markdown</button>
@@ -34,8 +33,10 @@
             <button class="meta-toggle" id="metaToggle">
                 <i class="fas fa-chevron-up meta-toggle-icon"></i>
             </button>
-            <label for="comparisonTitle">Comparison Title:</label>
-            <input type="text" id="comparisonTitle" placeholder="Enter a title for this comparison...">
+            <div class="title-row">
+                <label for="comparisonTitle">Comparison Title:</label>
+                <input type="text" id="comparisonTitle" placeholder="Enter a title for this comparison...">
+            </div>
 
             <label for="userPrompt">User Prompt:</label>
             <textarea id="userPrompt" rows="4" placeholder="Paste the prompt used to generate the responses..."></textarea>

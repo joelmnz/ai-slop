@@ -59,7 +59,27 @@ h1 {
 }
 
 .comparison-meta.collapsed {
-    max-height: 50px; /* Height of the toggle button */
+    max-height: 70px; /* Height of the toggle button */
+}
+
+/* Title row styling for inline label and input */
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding-right: 20px;
+}
+
+.title-row label {
+    margin-bottom: 0;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.title-row input {
+    flex-grow: 1;
+    margin-bottom: 0;
 }
 
 .meta-toggle {
@@ -103,7 +123,6 @@ textarea {
     border: 1px solid #444; /* Subtle border */
     border-radius: 4px;
     font-size: 1rem;
-    margin-bottom: 10px; /* Add margin below inputs */
 }
 input[type="number"] {
      width: auto; /* Allow number input to size naturally */
