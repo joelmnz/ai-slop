@@ -27,7 +27,9 @@
                 <button id="loadBtn"><i class="fas fa-file-upload"></i> Load</button>
                 <button id="saveBtn"><i class="fas fa-save"></i> Save</button>
                 <input type="file" id="loadFile" accept=".json" style="display: none;"> <!-- Hidden file input -->
-                <button id="transformBtn"><i class="fas fa-magic"></i> Transform</button>
+                <button id="transformBtn"><i class="fas fa-magic"></i> Run All Steps</button>
+                <button id="cancelTransformBtn" style="display: none;"><i class="fas fa-stop"></i> Cancel</button>
+                <span id="transformProgress" style="display: none;"><i class="fas fa-spinner fa-spin"></i> Running step <span id="currentStepNum">0</span> of <span id="totalStepNum">0</span></span>
                 <button id="toggleMarkdownBtn" title="Toggles Markdown between text input and display "><i class="fas fa-code"></i> Toggle Markdown</button>
                 <button id="settings-button" title="Settings"><i class="fas fa-cog"></i></button>
             </div>

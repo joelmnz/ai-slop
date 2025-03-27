@@ -705,3 +705,10 @@ button i {
     border-radius: 4px;
     overflow-x: auto;
 }
+
+/* Active Step Styling */
+.active-step {
+    border: 2px solid #4caf50;
+    background-color: rgba(76, 175, 80, 0.1);
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+}

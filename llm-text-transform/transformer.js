@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loadBtn = document.getElementById('loadBtn');
     const loadFile = document.getElementById('loadFile');
     const transformBtn = document.getElementById('transformBtn');
+    const cancelTransformBtn = document.getElementById('cancelTransformBtn');
+    const transformProgress = document.getElementById('transformProgress');
+    const currentStepNum = document.getElementById('currentStepNum');
+    const totalStepNum = document.getElementById('totalStepNum');
     const toggleMarkdownBtn = document.getElementById('toggleMarkdownBtn');
     const transformTitle = document.getElementById('transformTitle');
     const inputText = document.getElementById('inputText');
@@ -32,6 +36,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- State ---
     let markdownViewActive = false;
     let stepCounter = 0;
+    let isTransforming = false;
+    let cancelTransformation = false;
 
     // --- API Settings Cache ---
     let apiSettings = null;
@@ -548,30 +554,134 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Transform function to run all steps in sequence
     async function transformText() {
-        // We could implement sequential processing of all steps here
-        // For now, just show the stub message
-        const steps = getStepsData();
-        let output = `Input Text: ${inputText.value}\n\n`;
-        
-        steps.forEach((step, index) => {
-            output += `Step ${index + 1} [${step.model}]: ${step.instructions}\n`;
-        });
-        
-        output += `\nTransformed Output: ${inputText.value}`;
-        outputText.value = output;
-        
-        // If markdown is active, update the output markdown view
-        if (markdownViewActive) {
-            const outputMarkdownView = document.querySelector('#outputColumn .markdown-view');
-            outputMarkdownView.innerHTML = marked.parse(outputText.value);
-            outputMarkdownView.querySelectorAll('pre code').forEach(block => {
-                if (typeof hljs !== 'undefined') {
-                    hljs.highlightElement(block);
+        try {
+            const steps = Array.from(document.querySelectorAll('.transform-step'));
+            if (steps.length === 0) {
+                setStatus('No steps to run', 'error');
+                return;
+            }
+
+            // Check if input text is empty
+            if (!inputText.value.trim()) {
+                setStatus('Input text cannot be empty', 'error');
+                return;
+            }
+
+            // Set UI to transformation mode
+            isTransforming = true;
+            cancelTransformation = false;
+            transformBtn.style.display = 'none';
+            cancelTransformBtn.style.display = 'inline-block';
+            transformProgress.style.display = 'inline-block';
+            totalStepNum.textContent = steps.length;
+
+            // Disable all step run buttons during sequence
+            document.querySelectorAll('.run-step-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+
+            let currentInput = inputText.value;
+            
+            // Process each step in sequence
+            for (let i = 0; i < steps.length; i++) {
+                // Check if cancellation was requested
+                if (cancelTransformation) {
+                    setStatus('Transformation cancelled', 'info');
+                    break;
                 }
+
+                const step = steps[i];
+                const stepId = step.getAttribute('data-step-id');
+                
+                // Update progress indicator
+                currentStepNum.textContent = i + 1;
+                
+                // Highlight current step
+                steps.forEach(s => s.classList.remove('active-step'));
+                step.classList.add('active-step');
+                
+                // Extract step details
+                const instructions = step.querySelector('.step-instructions').value.trim();
+                const model = step.querySelector('.step-model-input').value.trim();
+                
+                // Skip steps with missing data
+                if (!instructions || !model) {
+                    setStatus(`Skipping step ${i+1} due to missing instructions or model`, 'error', 3000);
+                    continue;
+                }
+                
+                try {
+                    // Update the button to show processing
+                    const runButton = step.querySelector('.run-step-btn');
+                    runButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                    
+                    // Process the step
+                    const response = await callLLMAPI(instructions, model, currentInput);
+                    
+                    // Store the response in the hidden field
+                    const hiddenResponseField = step.querySelector('.hidden-llm-response');
+                    hiddenResponseField.value = response;
+                    
+                    // Show the response icon
+                    const responseIcon = step.querySelector('.llm-response-icon');
+                    responseIcon.style.display = 'block';
+                    
+                    // Use this response as input for the next step
+                    currentInput = response;
+                    
+                    // Update output area with the latest result
+                    outputText.value = response;
+                    
+                    // If markdown view is active, update the output markdown view
+                    if (markdownViewActive) {
+                        const outputMarkdownView = document.querySelector('#outputColumn .markdown-view');
+                        outputMarkdownView.innerHTML = marked.parse(response);
+                        outputMarkdownView.querySelectorAll('pre code').forEach(block => {
+                            if (typeof hljs !== 'undefined') {
+                                hljs.highlightElement(block);
+                            }
+                        });
+                    }
+                    
+                    setStatus(`Step ${i+1} completed`, 'success', 2000);
+                } catch (error) {
+                    console.error(`Error in step ${i+1}:`, error);
+                    setStatus(`Error in step ${i+1}: ${error.message}`, 'error', 5000);
+                    break; // Stop processing on error
+                } finally {
+                    // Reset step button
+                    const runButton = step.querySelector('.run-step-btn');
+                    runButton.innerHTML = '<i class="fas fa-play"></i> Run Step';
+                }
+            }
+            
+            // Reset UI after completion
+            steps.forEach(s => s.classList.remove('active-step'));
+            setStatus('Transformation complete', 'success');
+        } catch (error) {
+            console.error('Transformation failed:', error);
+            setStatus(`Transformation failed: ${error.message}`, 'error', 5000);
+        } finally {
+            // Reset UI
+            isTransforming = false;
+            transformBtn.style.display = 'inline-block';
+            cancelTransformBtn.style.display = 'none';
+            transformProgress.style.display = 'none';
+            
+            // Re-enable step run buttons
+            document.querySelectorAll('.run-step-btn').forEach(btn => {
+                btn.disabled = false;
+                updateRunButtonState(btn.closest('.transform-step'));
             });
         }
-        
-        setStatus('Text transformed successfully!', 'success');
+    }
+
+    // Cancel transformation function
+    function cancelTransformProcess() {
+        if (isTransforming) {
+            cancelTransformation = true;
+            setStatus('Cancelling transformation...', 'info');
+        }
     }
 
     // Copy output to clipboard
@@ -663,6 +773,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     transformBtn.addEventListener('click', transformText);
+    
+    cancelTransformBtn.addEventListener('click', cancelTransformProcess);
     
     copyBtn.addEventListener('click', copyToClipboard);
     
