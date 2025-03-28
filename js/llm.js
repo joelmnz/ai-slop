@@ -173,27 +173,57 @@ async function getAvailableModels(settings) {
                     }
                 }
                 
+                // Format context length if available
+                let contextLength = null;
+                if (model.context_length) {
+                    contextLength = model.context_length.toLocaleString();
+                } else if (model.top_provider?.context_length) {
+                    contextLength = model.top_provider.context_length.toLocaleString();
+                }
+                
                 return {
                     id: model.id || model.name || `unknown-${Math.random().toString(36).substring(2, 9)}`,
                     name: model.name || model.id || 'Unknown Model',
-                    pricing: pricingInfo
+                    pricing: pricingInfo,
+                    contextLength: contextLength,
+                    // Combine pricing and context length if both are available
+                    displayInfo: [
+                        pricingInfo,
+                        contextLength ? `${contextLength} tokens` : null
+                    ].filter(Boolean).join(' • ')
                 };
             });
         } else if (baseUrl.includes('openai')) {
             // OpenAI format only has id
-            models = (data.data || []).map(model => ({
-                id: model.id || `unknown-${Math.random().toString(36).substring(2, 9)}`,
-                name: model.id || 'Unknown Model',
-                pricing: null // OpenAI API doesn't provide pricing in the models response
-            }));
+            models = (data.data || []).map(model => {
+                // Extract context length if available
+                const contextLength = model.context_length || model.max_tokens;
+                
+                return {
+                    id: model.id || `unknown-${Math.random().toString(36).substring(2, 9)}`,
+                    name: model.id || 'Unknown Model',
+                    pricing: null, // OpenAI API doesn't provide pricing in the models response
+                    contextLength: contextLength ? contextLength.toLocaleString() : null,
+                    displayInfo: contextLength ? `${contextLength.toLocaleString()} tokens` : null
+                };
+            });
         } else {
             // Generic format - try to extract model IDs and use as names
             const rawModels = data.data || data.models || [];
-            models = rawModels.map(model => ({
-                id: model.id || model.name || `unknown-${Math.random().toString(36).substring(2, 9)}`,
-                name: model.name || model.id || 'Unknown Model',
-                pricing: null // Default to no pricing for other APIs
-            }));
+            models = rawModels.map(model => {
+                // Extract context length if available
+                const contextLength = model.context_length || 
+                                     model.max_tokens || 
+                                     model.top_provider?.context_length;
+                
+                return {
+                    id: model.id || model.name || `unknown-${Math.random().toString(36).substring(2, 9)}`,
+                    name: model.name || model.id || 'Unknown Model',
+                    pricing: null, // Default to no pricing for other APIs
+                    contextLength: contextLength ? contextLength.toLocaleString() : null,
+                    displayInfo: contextLength ? `${contextLength.toLocaleString()} tokens` : null
+                };
+            });
         }
         
         // Return sorted list of model objects with id and name, filtering out any without IDs
