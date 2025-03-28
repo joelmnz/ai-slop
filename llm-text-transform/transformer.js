@@ -104,18 +104,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         const searchContainer = document.createElement('div');
         searchContainer.className = 'model-search-container';
         
+        // Create search input wrapper (for containing input and clear button)
+        const searchInputWrapper = document.createElement('div');
+        searchInputWrapper.className = 'search-input-wrapper';
+        
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
         searchInput.className = 'model-search-input';
         searchInput.placeholder = 'Search models...';
         
-        // Add close button to search container instead of directly to popup
+        // Create clear button for search input
+        const clearButton = document.createElement('button');
+        clearButton.type = 'button';
+        clearButton.className = 'search-clear-btn';
+        clearButton.innerHTML = '<i class="fas fa-times"></i>';
+        clearButton.title = 'Clear search';
+        
+        // Add searchInput and clearButton to wrapper
+        searchInputWrapper.appendChild(searchInput);
+        searchInputWrapper.appendChild(clearButton);
+        
+        // Add close button to search container
         const closeButton = document.createElement('button');
         closeButton.className = 'model-selector-close';
         closeButton.innerHTML = '<i class="fas fa-times"></i>';
         
         // Add elements to container
-        searchContainer.appendChild(searchInput);
+        searchContainer.appendChild(searchInputWrapper);
         searchContainer.appendChild(closeButton);
         modelSelectorPopup.appendChild(searchContainer);
         
@@ -128,6 +143,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             updateModelsList(searchTerm);
+        });
+        
+        // Add clear button event listener
+        clearButton.addEventListener('click', function() {
+            searchInput.value = '';
+            searchInput.focus();
+            updateModelsList('');
         });
         
         closeButton.addEventListener('click', function() {

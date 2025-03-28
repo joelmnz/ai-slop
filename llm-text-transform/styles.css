@@ -1028,9 +1028,17 @@ button i {
     gap: 15px;
 }
 
+.search-input-wrapper {
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
 .model-search-input {
     width: 100%;
     padding: 12px 15px;
+    padding-right: 40px; /* Space for the clear button */
     border: 1px solid #444;
     border-radius: 4px;
     background-color: #2a2a2a;
@@ -1038,10 +1046,27 @@ button i {
     font-size: 1rem;
 }
 
-.model-search-input:focus {
-    outline: none;
-    border-color: #6610f2;
-    box-shadow: 0 0 0 2px rgba(102, 16, 242, 0.25);
+.search-clear-btn {
+    position: absolute;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    padding: 5px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    transition: all 0.2s;
+}
+
+.search-clear-btn:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .models-list-container {
