@@ -79,6 +79,19 @@ label { /* General label styling */
     display: block; /* Ensure label takes its own line */
 }
 
+/* Input label and reference note styling */
+.input-label-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.input-reference-note {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: smaller;
+    margin-left: 10px;
+}
+
 /* Input and Textarea Styling */
 input[type="text"],
 select,
