@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', async () => {
     // Try to dynamically import the callOpenAI function
-    let callOpenAI;
+    let sendMessages;
     try {
         const module = await import('../js/llm.js');
-        callOpenAI = module.callOpenAI;
+        sendMessages = module.sendMessages;
     } catch (error) {
         console.error('Error importing llm.js:', error);
         // Create fallback if import fails
-        callOpenAI = async (prompt, model, maxTokens, textContext, settings) => {
+        sendMessages = async (messages, model, maxTokens, settings) => {
             throw new Error('LLM API module could not be loaded. Please check the console for details.');
         };
     }
@@ -79,21 +79,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         breaks: true,
         gfm: true
     });
-
-    // --- LLM API Function ---
-    async function callLLMAPI(formattedPrompt, model, inputText) {
-        try {
-            // Get cached settings
-            const settings = await getApiSettings();
-
-            // Call the imported callOpenAI function with our cached settings
-            // Note: Settings are now required, not optional
-            return await callOpenAI(formattedPrompt, model, 8000, settings);
-        } catch (error) {
-            console.error('LLM API call error:', error);
-            throw error;
-        }
-    }
 
     // --- Templates ---
     const templates = {
@@ -427,28 +412,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const currentStepIndex = allSteps.findIndex(s => s.getAttribute('data-step-id') === stepId);
             const isFirstStep = currentStepIndex === 0; // First in DOM order, regardless of data-step-id
             
-            // Determine the input based on position in the transformation pipeline
-            let input;
-            if (isFirstStep) {
-                // First step in sequence always uses the input text textarea
-                input = inputText.value;
-            } else {
-                // Other steps use previous step's LLM response
-                const previousStep = allSteps[currentStepIndex - 1];
-                if (!previousStep) {
-                    setStatus('Error: Previous step not found', 'error');
-                    return;
-                }
-                
-                const previousResponse = previousStep.querySelector('.hidden-llm-response').value;
-                if (!previousResponse.trim()) {
-                    setStatus('Previous step has no output. Please run steps in order.', 'error');
-                    return;
-                }
-                
-                input = previousResponse;
-            }
-            
             // Input validation
             if (!instructions) {
                 setStatus('Instructions cannot be empty', 'error');
@@ -460,7 +423,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             
-            if (!input.trim()) {
+            if (!inputText.value.trim()) {
                 setStatus('Input text cannot be empty', 'error');
                 return;
             }
@@ -476,11 +439,57 @@ document.addEventListener('DOMContentLoaded', async () => {
             runButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
             runButton.disabled = true;
 
-            // Format the prompt contain the original input and instructions
-            const formattedPrompt = `Context:\n${input}\n\n${instructions}`;
+            // Build messages array according to the specified rules
+            let messages = [];
             
-            // Call the LLM API function
-            const response = await callLLMAPI(formattedPrompt, model, input);
+            // Get the first step's instructions for all cases
+            const firstStep = allSteps[0];
+            const firstStepInstructions = firstStep.querySelector('.step-instructions').value.trim();
+            
+            if (isFirstStep) {
+                // First step: Create a user message with input text + instructions
+                messages = [
+                    { role: "user", content: `${inputText.value}\n\n${instructions}` }
+                ];
+            } else {
+                // Subsequent steps:
+                // 1. Include the first user message (input text + first step's instructions)
+                messages.push({ 
+                    role: "user", 
+                    content: `${inputText.value}\n\n${firstStepInstructions}` 
+                });
+                
+                // 2. Get the previous step's LLM response
+                const previousStep = allSteps[currentStepIndex - 1];
+                if (!previousStep) {
+                    setStatus('Error: Previous step not found', 'error');
+                    return;
+                }
+                
+                const previousResponse = previousStep.querySelector('.hidden-llm-response').value;
+                if (!previousResponse.trim()) {
+                    setStatus('Previous step has no output. Please run steps in order.', 'error');
+                    return;
+                }
+                
+                // 3. Add the previous step's response as an "assistant" message
+                messages.push({ 
+                    role: "assistant", 
+                    content: previousResponse 
+                });
+                
+                // 4. Add the current step's instructions as a new user message
+                messages.push({ 
+                    role: "user", 
+                    content: instructions 
+                });
+            }
+            
+            // Get cached settings
+            const settings = await getApiSettings();
+            
+            // Call the sendMessages function with the built message array
+            const response = await sendMessages(messages, model, 8000, settings);
             
             // Store the response in the hidden field
             const hiddenResponseField = step.querySelector('.hidden-llm-response');
@@ -516,35 +525,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 runButton.disabled = false;
             }
         }
-    }
-
-    // Show LLM response popup
-    function showResponsePopup(responseText) {
-        // Check if popup already exists, if not create it
-        let popupOverlay = document.getElementById('responsePopupOverlay');
-        if (!popupOverlay) {
-            const popupTemplate = templates.responsePopup();
-            popupOverlay = renderTemplate(popupTemplate);
-            document.body.appendChild(popupOverlay);
-            
-            // Add event listener to close button
-            const closeBtn = popupOverlay.querySelector('.close-popup-btn');
-            closeBtn.addEventListener('click', () => {
-                popupOverlay.style.display = 'none';
-            });
-            
-            // Add event listener to close on overlay click
-            popupOverlay.addEventListener('click', (event) => {
-                if (event.target === popupOverlay) {
-                    popupOverlay.style.display = 'none';
-                }
-            });
-        }
-        
-        // Set content and show popup
-        const responseContent = document.getElementById('responseContent');
-        responseContent.textContent = responseText;
-        popupOverlay.style.display = 'flex';
     }
 
     // Transform function to run all steps in sequence
