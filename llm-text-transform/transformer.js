@@ -824,7 +824,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Generate default filename from the transform title
             const safeTitle = transformData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            const defaultFilename = `${safeTitle || 'llm_transform'}`;
+            const defaultFilename = `lmtx-${safeTitle || 'llm_transform'}`;
             
             // Prompt user for filename
             const userFilename = prompt("Enter filename for saving (without extension):", defaultFilename);

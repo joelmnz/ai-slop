@@ -72,6 +72,34 @@ h1 {
     margin-bottom: 0;
 }
 
+/* Models link styling */
+.models-link {
+    color: #64d8ff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.models-link:hover {
+    background-color: rgba(100, 216, 255, 0.1);
+    color: #8ae7ff;
+}
+
+.models-link:visited {
+    color: #b388ff;
+}
+
+.models-link:visited:hover {
+    background-color: rgba(179, 136, 255, 0.1);
+    color: #cfb6ff;
+}
+
 label { /* General label styling */
     font-weight: bold;
     margin-bottom: 5px;
