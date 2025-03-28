@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     // Show model selector popup
-    function showModelSelector(modelInput) {
+    async function showModelSelector(modelInput) {
         // Store reference to the input field
         currentModelInput = modelInput;
         
@@ -165,13 +165,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         popup.style.left = `${inputRect.left + window.scrollX}px`;
         popup.style.width = `${Math.max(300, inputRect.width)}px`;
         
+        // Check if models are cached, fetch if needed
+        if (availableModels.length === 0) {
+            try {
+                // Show loading indicator in popup
+                const modelsListContainer = popup.querySelector('.models-list-container');
+                modelsListContainer.innerHTML = '<div class="loading-models">Loading models...</div>';
+                
+                // Show popup while loading
+                popup.style.display = 'block';
+                
+                // Fetch and cache models
+                await fetchAvailableModels();
+            } catch (error) {
+                console.error('Error fetching models:', error);
+                setStatus(`Failed to load models: ${error.message}`, 'error', 5000);
+            }
+        } else {
+            // Show popup immediately if models are already cached
+            popup.style.display = 'block';
+        }
+        
         // Update models list with any existing filter value
         const searchInput = popup.querySelector('.model-search-input');
         searchInput.value = modelInput.value; // Set search to current input value
         updateModelsList(searchInput.value.toLowerCase());
-        
-        // Show popup
-        popup.style.display = 'block';
         
         // Focus search input
         setTimeout(() => {
@@ -1000,6 +1018,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (typeof window.aiSettings !== 'undefined') {
                 // Reset API settings cache when opening settings
                 apiSettings = null;
+                // Also clear cached models since settings might affect available models
+                availableModels = [];
                 window.aiSettings.openSettings();
             } else {
                 setStatus('Settings manager is not available', 'error');
@@ -1152,9 +1172,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize the page
     resetToDefaultState();
-    
-    // Fetch available models after page initialization
-    fetchAvailableModels().catch(error => {
-        console.error('Failed to initialize models:', error);
-    });
 });
