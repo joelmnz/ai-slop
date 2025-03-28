@@ -30,7 +30,6 @@
                 <button id="transformBtn"><i class="fas fa-magic"></i> Run All Steps</button>
                 <button id="cancelTransformBtn" style="display: none;"><i class="fas fa-stop"></i> Cancel</button>
                 <span id="transformProgress" style="display: none;"><i class="fas fa-spinner fa-spin"></i> Running step <span id="currentStepNum">0</span> of <span id="totalStepNum">0</span></span>
-                <button id="toggleMarkdownBtn" title="Toggles Markdown between text input and display "><i class="fas fa-code"></i> Toggle Markdown</button>
                 <button id="settings-button" title="Settings"><i class="fas fa-cog"></i></button>
             </div>
         </div>
@@ -39,6 +38,9 @@
             <div class="title-row">
                 <label for="transformTitle">Transform Title:</label>
                 <input type="text" id="transformTitle" placeholder="Enter a title for this transformation...">
+                <a href="https://openrouter.ai/models" target="_blank" class="models-link" title="Browse OpenRouter models">
+                    <i class="fas fa-external-link-alt"></i> Models
+                </a>
             </div>
         </div>
 
@@ -64,7 +66,10 @@
             </div>
             
             <div class="column" id="outputColumn">
-                <label for="outputText" class="model-name-label">Output Text:</label>
+                <div class="output-header">
+                    <label for="outputText" class="model-name-label">Output Text:</label>
+                    <button id="toggleMarkdownBtn" title="Toggles Markdown between text input and display"><i class="fas fa-code"></i> Toggle Markdown</button>
+                </div>
                 <textarea id="outputText" class="llm-response-textarea" placeholder="Transformed text will appear here..." readonly></textarea>
                 
                 <div class="preview-container" style="display: none;">
