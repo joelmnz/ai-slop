@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let stepCounter = 0;
     let isTransforming = false;
     let cancelTransformation = false;
-    let availableModels = []; // New state for storing available models
+    let availableModels = []; // Will now store objects with {id, name} instead of just strings
 
     // --- API Settings Cache ---
     let apiSettings = null;
@@ -212,10 +212,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const modelsListContainer = modelSelectorPopup.querySelector('.models-list-container');
         modelsListContainer.innerHTML = '';
         
-        // Filter models by search term
-        const filteredModels = availableModels.filter(model => 
-            model.toLowerCase().includes(searchTerm)
-        );
+        // Filter models by search term - now searching in both name and id with null checks
+        const filteredModels = availableModels.filter(model => {
+            const modelName = model.name || '';
+            const modelId = model.id || '';
+            return modelName.toLowerCase().includes(searchTerm) || 
+                   modelId.toLowerCase().includes(searchTerm);
+        });
         
         if (filteredModels.length === 0) {
             const noResults = document.createElement('div');
@@ -232,19 +235,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         modelsList.className = 'models-list';
         
         filteredModels.forEach(model => {
+            // Skip invalid models
+            if (!model.id) return;
+            
             const modelItem = document.createElement('li');
             modelItem.className = 'model-item';
-            modelItem.textContent = model;
+            
+            // Create model name span
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'model-name';
+            nameSpan.textContent = model.name || model.id;
+            modelItem.appendChild(nameSpan);
+            
+            // Add pricing info if available
+            if (model.pricing) {
+                const pricingSpan = document.createElement('span');
+                pricingSpan.className = 'model-pricing';
+                pricingSpan.textContent = model.pricing;
+                modelItem.appendChild(pricingSpan);
+            }
+            
+            // Store model ID as data attribute
+            modelItem.setAttribute('data-model-id', model.id);
             
             // Highlight current selection
-            if (currentModelInput && currentModelInput.value === model) {
+            if (currentModelInput && currentModelInput.value === model.id) {
                 modelItem.classList.add('selected');
             }
             
             // Add click handler
             modelItem.addEventListener('click', function() {
                 if (currentModelInput) {
-                    currentModelInput.value = model;
+                    currentModelInput.value = model.id; // Set the ID as the value
                     // Trigger input event to update run button state
                     currentModelInput.dispatchEvent(new Event('input'));
                 }

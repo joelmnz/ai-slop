@@ -103,7 +103,7 @@ async function sendMessages(messages, model = 'deepseek/deepseek-r1:free', maxTo
 /**
  * Fetches available models from the specified API
  * @param {Object} settings - Required settings object containing openaiApiKey and openaiBaseUrl
- * @returns {Promise<Array>} - Array of available model objects
+ * @returns {Promise<Array>} - Array of available model objects with id and name properties
  */
 async function getAvailableModels(settings) {
     try {
@@ -154,21 +154,53 @@ async function getAvailableModels(settings) {
         let models = [];
         
         if (baseUrl.includes('openrouter')) {
-            // OpenRouter format
-            models = data.data || [];
+            // OpenRouter format has name field and pricing information
+            models = (data.data || []).map(model => {
+                // Format pricing if available
+                let pricingInfo = null;
+                if (model.pricing) {
+                    const promptPrice = model.pricing.prompt ? 
+                        parseFloat(model.pricing.prompt) * 1000000 : null;
+                    const completionPrice = model.pricing.completion ? 
+                        parseFloat(model.pricing.completion) * 1000000 : null;
+                    
+                    if (promptPrice !== null && completionPrice !== null) {
+                        pricingInfo = `$${promptPrice.toFixed(2)} in / $${completionPrice.toFixed(2)} out`;
+                    } else if (promptPrice !== null) {
+                        pricingInfo = `$${promptPrice.toFixed(2)} in`;
+                    } else if (completionPrice !== null) {
+                        pricingInfo = `$${completionPrice.toFixed(2)} out`;
+                    }
+                }
+                
+                return {
+                    id: model.id || model.name || `unknown-${Math.random().toString(36).substring(2, 9)}`,
+                    name: model.name || model.id || 'Unknown Model',
+                    pricing: pricingInfo
+                };
+            });
         } else if (baseUrl.includes('openai')) {
-            // OpenAI format
-            models = data.data || [];
+            // OpenAI format only has id
+            models = (data.data || []).map(model => ({
+                id: model.id || `unknown-${Math.random().toString(36).substring(2, 9)}`,
+                name: model.id || 'Unknown Model',
+                pricing: null // OpenAI API doesn't provide pricing in the models response
+            }));
         } else {
-            // Generic format - try to extract model IDs
-            models = data.data || data.models || [];
+            // Generic format - try to extract model IDs and use as names
+            const rawModels = data.data || data.models || [];
+            models = rawModels.map(model => ({
+                id: model.id || model.name || `unknown-${Math.random().toString(36).substring(2, 9)}`,
+                name: model.name || model.id || 'Unknown Model',
+                pricing: null // Default to no pricing for other APIs
+            }));
         }
         
-        // Return sorted list of model IDs
+        // Return sorted list of model objects with id and name, filtering out any without IDs
         return models
+            .filter(model => model.id) // Ensure there's a valid ID
             .filter(model => !model.id.includes('deprecated') && !model.id.includes('-instruct'))
-            .map(model => model.id)
-            .sort();
+            .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     } catch (error) {
         console.error('Error fetching available models:', error);
         throw error;
