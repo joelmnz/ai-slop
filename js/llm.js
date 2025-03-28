@@ -160,9 +160,9 @@ async function getAvailableModels(settings) {
                 let pricingInfo = null;
                 if (model.pricing) {
                     const promptPrice = model.pricing.prompt ? 
-                        parseFloat(model.pricing.prompt) * 1000000 : null;
+                        Math.max(0, parseFloat(model.pricing.prompt) * 1000000) : null;
                     const completionPrice = model.pricing.completion ? 
-                        parseFloat(model.pricing.completion) * 1000000 : null;
+                        Math.max(0, parseFloat(model.pricing.completion) * 1000000) : null;
                     
                     if (promptPrice !== null && completionPrice !== null) {
                         pricingInfo = `$${promptPrice.toFixed(2)} in / $${completionPrice.toFixed(2)} out`;
@@ -176,9 +176,15 @@ async function getAvailableModels(settings) {
                 // Format context length if available
                 let contextLength = null;
                 if (model.context_length) {
-                    contextLength = model.context_length.toLocaleString();
+                    // Convert to "k" format (e.g., 8000 to "8k")
+                    contextLength = model.context_length >= 1000 
+                        ? `${Math.round(model.context_length / 1000)}k` 
+                        : model.context_length.toString();
                 } else if (model.top_provider?.context_length) {
-                    contextLength = model.top_provider.context_length.toLocaleString();
+                    // Convert to "k" format (e.g., 8000 to "8k")
+                    contextLength = model.top_provider.context_length >= 1000 
+                        ? `${Math.round(model.top_provider.context_length / 1000)}k` 
+                        : model.top_provider.context_length.toString();
                 }
                 
                 return {

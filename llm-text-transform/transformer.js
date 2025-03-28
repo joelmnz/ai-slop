@@ -269,6 +269,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             nameSpan.textContent = model.name || model.id;
             modelItem.appendChild(nameSpan);
             
+            // Add context length info if available
+            if (model.contextLength) {
+                const contextSpan = document.createElement('span');
+                contextSpan.className = 'model-context';
+                contextSpan.textContent = `${model.contextLength} context`;
+                modelItem.appendChild(contextSpan);
+            }
+            
             // Add pricing info if available
             if (model.pricing) {
                 const pricingSpan = document.createElement('span');
@@ -789,7 +797,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Show the response icon
             const responseIcon = step.querySelector('.llm-response-icon');
-            responseIcon.style.display = 'block';
+            responseIcon.style.display = 'flex';
             
             // Update the output text area
             outputText.value = response;
