@@ -1024,7 +1024,10 @@ button i {
 }
 
 .model-item {
-    padding: 8px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
     cursor: pointer;
     transition: background-color 0.2s;
     color: #e0e0e0;
@@ -1037,6 +1040,19 @@ button i {
 .model-item.selected {
     background-color: rgba(102, 16, 242, 0.2);
     border-left: 3px solid #6610f2;
+}
+
+.model-name {
+    font-weight: 500;
+}
+
+.model-pricing {
+    font-size: 0.85em;
+    color: #aaa;
+    margin-left: 10px;
+    padding-left: 8px;
+    border-left: 1px solid #555;
+    white-space: nowrap;
 }
 
 .no-models-message {

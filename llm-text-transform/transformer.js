@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const copyBtn = document.getElementById('copyBtn');
     const printBtn = document.getElementById('printBtn');
     const toastContainer = document.getElementById('toastContainer');
-    const comparisonMeta = document.querySelector('.comparison-meta');
     const settingsBtn = document.getElementById('settings-button');
 
     // --- State ---
@@ -163,7 +162,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const inputRect = modelInput.getBoundingClientRect();
         popup.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
         popup.style.left = `${inputRect.left + window.scrollX}px`;
-        popup.style.width = `${Math.max(300, inputRect.width)}px`;
         
         // Check if models are cached, fetch if needed
         if (availableModels.length === 0) {
