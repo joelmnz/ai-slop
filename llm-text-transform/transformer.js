@@ -158,10 +158,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Create popup if it doesn't exist
         const popup = createModelSelectorPopup();
         
-        // Position popup near the input
-        const inputRect = modelInput.getBoundingClientRect();
-        popup.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
-        popup.style.left = `${inputRect.left + window.scrollX}px`;
+        // No need to position near input as it's now centered
+        // Just display the popup
         
         // Check if models are cached, fetch if needed
         if (availableModels.length === 0) {
@@ -171,7 +169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 modelsListContainer.innerHTML = '<div class="loading-models">Loading models...</div>';
                 
                 // Show popup while loading
-                popup.style.display = 'block';
+                popup.style.display = 'flex'; // Changed from 'block' to 'flex'
                 
                 // Fetch and cache models
                 await fetchAvailableModels();
@@ -181,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } else {
             // Show popup immediately if models are already cached
-            popup.style.display = 'block';
+            popup.style.display = 'flex'; // Changed from 'block' to 'flex'
         }
         
         // Update models list with any existing filter value
@@ -193,6 +191,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => {
             searchInput.focus();
         }, 100);
+        
+        // Add event listener to close popup when clicking outside
+        // This is already handled in the createModelSelectorPopup function
     }
     
     // Hide model selector popup
