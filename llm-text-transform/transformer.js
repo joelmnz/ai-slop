@@ -391,7 +391,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                                     html: '<i class="fas fa-search"></i>'
                                 }
                             ]
-                        },
+                        }
+                    ]
+                },
+                {
+                    type: 'div',
+                    classes: ['step-buttons-container'],
+                    children: [
                         {
                             type: 'button',
                             classes: ['remove-step-btn'],

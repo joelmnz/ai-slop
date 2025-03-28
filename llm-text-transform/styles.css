@@ -551,12 +551,20 @@ button i {
     margin-bottom: 10px;
 }
 
-/* Adjust step model container for autocomplete */
+/* Adjust step model container for autocomplete - update */
 .step-model-container {
     position: relative;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+}
+
+/* Step buttons container styling */
+.step-buttons-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
 }
 
 .step-model-label {
