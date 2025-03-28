@@ -1,5 +1,4 @@
-# LLM Text Transfrom
-
+# LLM Text Transform
 This tool is designed to start from a long form text document and over multiple steps refine the output.
 
 Use Cases:
