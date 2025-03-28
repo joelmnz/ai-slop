@@ -109,19 +109,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         searchInput.className = 'model-search-input';
         searchInput.placeholder = 'Search models...';
         
+        // Add close button to search container instead of directly to popup
+        const closeButton = document.createElement('button');
+        closeButton.className = 'model-selector-close';
+        closeButton.innerHTML = '<i class="fas fa-times"></i>';
+        
+        // Add elements to container
         searchContainer.appendChild(searchInput);
+        searchContainer.appendChild(closeButton);
         modelSelectorPopup.appendChild(searchContainer);
         
         // Add models list container
         const modelsListContainer = document.createElement('div');
         modelsListContainer.className = 'models-list-container';
         modelSelectorPopup.appendChild(modelsListContainer);
-        
-        // Add close button
-        const closeButton = document.createElement('button');
-        closeButton.className = 'model-selector-close';
-        closeButton.innerHTML = '<i class="fas fa-times"></i>';
-        modelSelectorPopup.appendChild(closeButton);
         
         // Add event listeners
         searchInput.addEventListener('input', function() {
