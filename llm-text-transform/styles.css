@@ -713,7 +713,7 @@ button i {
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    background-color: #3700b3;
+    background-color: var(--dark-highlight, #3498db);
     border-bottom: 1px solid var(--dark-border);
 }
 
@@ -743,6 +743,7 @@ button i {
     padding: 20px;
     overflow-y: auto;
     max-height: calc(80vh - 60px);
+    background-color: #222; /* Changed from var(--dark-accent) to a specific dark color */
 }
 
 .response-content {
