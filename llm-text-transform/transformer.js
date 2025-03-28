@@ -443,20 +443,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             let messages = [];
             
             // Get the first step's instructions for all cases
-            const firstStep = allSteps[0];
-            const firstStepInstructions = firstStep.querySelector('.step-instructions').value.trim();
+            const firstMessageContent = `<content>${inputText.value}</content>\n\n<instructions>${instructions}<instructions>`;
             
             if (isFirstStep) {
                 // First step: Create a user message with input text + instructions
                 messages = [
-                    { role: "user", content: `${inputText.value}\n\n${instructions}` }
+                    { role: "user", content: firstMessageContent }
                 ];
             } else {
                 // Subsequent steps:
                 // 1. Include the first user message (input text + first step's instructions)
                 messages.push({ 
                     role: "user", 
-                    content: `${inputText.value}\n\n${firstStepInstructions}` 
+                    content: firstMessageContent
                 });
                 
                 // 2. Get the previous step's LLM response
@@ -481,7 +480,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // 4. Add the current step's instructions as a new user message
                 messages.push({ 
                     role: "user", 
-                    content: instructions 
+                    content: `<instructions>${instructions}</instructions>`
                 });
             }
             
