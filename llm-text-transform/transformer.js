@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- DOM References ---
     const newBtn = document.getElementById('newBtn');
-    const saveBtn = document.getElementById('saveBtn');
+    const saveBtn = document.getElementByElementById('saveBtn');
     const loadBtn = document.getElementById('loadBtn');
     const loadFile = document.getElementById('loadFile');
     const transformBtn = document.getElementById('transformBtn');
@@ -677,6 +677,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         setStatus('Printing document...', 'info');
     }
+
+    // Show response popup
+    function showResponsePopup(responseText) {
+        const responsePopupOverlay = document.getElementById('responsePopupOverlay');
+        const responseContent = document.getElementById('responseContent');
+        responseContent.textContent = responseText;
+        responsePopupOverlay.style.display = 'flex';
+    }
+
+    // Close response popup
+    function closeResponsePopup() {
+        const responsePopupOverlay = document.getElementById('responsePopupOverlay');
+        responsePopupOverlay.style.display = 'none';
+    }
+
+    // Append the popup HTML structure to the body
+    const responsePopupTemplate = templates.responsePopup();
+    renderTemplate(responsePopupTemplate, document.body);
+
+    // Add event listener to close the popup when the close button is clicked
+    document.querySelector('.close-popup-btn').addEventListener('click', closeResponsePopup);
 
     // --- Event Listeners ---
     newBtn.addEventListener('click', () => {

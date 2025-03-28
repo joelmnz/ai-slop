@@ -82,6 +82,19 @@
     <!-- Toast notification container -->
     <div id="toastContainer"></div>
 
+    <!-- Response Popup Structure -->
+    <div class="response-popup-overlay" id="responsePopupOverlay">
+        <div class="response-popup" id="responsePopup">
+            <div class="response-popup-header">
+                <h3>LLM Response</h3>
+                <button class="close-popup-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="response-popup-content">
+                <pre class="response-content" id="responseContent"></pre>
+            </div>
+        </div>
+    </div>
+
     <!-- Import the JavaScript file -->
     <script src="transformer.js"></script>
 </body>
