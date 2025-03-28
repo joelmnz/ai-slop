@@ -770,6 +770,19 @@ button i {
     background-color: var(--primary-color-hover);
 }
 
+/* Output header styling */
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.output-header button {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+}
+
 /* Print styles - updated for proper A4 printing */
 @media print {
     @page {
