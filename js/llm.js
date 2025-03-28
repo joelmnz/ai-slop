@@ -3,11 +3,24 @@
  * @param {string} prompt - The prompt to send to the API
  * @param {string} model - The model to use
  * @param {number} maxTokens - Maximum tokens to generate
- * @param {string} textContext - Optional context to include
  * @param {Object} settings - Required settings object containing openaiApiKey and openaiBaseUrl
  * @returns {Promise<string>} - The API response text
  */
-async function callOpenAI(prompt, model = 'deepseek/deepseek-r1:free', maxTokens = 8000, textContext = '', settings) {
+async function callOpenAI(prompt, model = 'deepseek/deepseek-r1:free', maxTokens = 8000, settings) {
+    // Convert the prompt string to a messages array and call sendMessages
+    const messages = [{ role: "user", content: prompt }];
+    return sendMessages(messages, model, maxTokens, settings);
+}
+
+/**
+ * Call the OpenAI API with an array of messages instead of a single prompt
+ * @param {Array} messages - Array of message objects with role and content
+ * @param {string} model - The model to use
+ * @param {number} maxTokens - Maximum tokens to generate
+ * @param {Object} settings - Required settings object containing openaiApiKey and openaiBaseUrl
+ * @returns {Promise<string>} - The API response text
+ */
+async function sendMessages(messages, model = 'deepseek/deepseek-r1:free', maxTokens = 8000, settings) {
     try {
         // Validate that settings were provided
         if (!settings) {
@@ -40,26 +53,20 @@ async function callOpenAI(prompt, model = 'deepseek/deepseek-r1:free', maxTokens
         let requestBody;
         
         if (isChat) {
-            // Prepare the message content
-            let userContent = prompt;
-            
-            // If textContext is provided, include it in the messages
-            if (textContext) {
-                userContent = `Context:\n${textContext}\n\n${prompt}`;
-            }
-            
             requestBody = {
                 model: model,
-                messages: [
-                    { role: "user", content: userContent }
-                ],
+                messages: messages,
                 max_tokens: maxTokens
             };
         } else {
-            // Legacy completions API format
+            // For legacy completions API, combine messages into a single prompt
+            const combinedPrompt = messages
+                .map(msg => `${msg.role}: ${msg.content}`)
+                .join('\n\n');
+                
             requestBody = {
                 model: model,
-                prompt: textContext ? `${prompt}\n\nContext:\n${textContext}` : prompt,
+                prompt: combinedPrompt,
                 max_tokens: maxTokens
             };
         }
@@ -93,4 +100,4 @@ async function callOpenAI(prompt, model = 'deepseek/deepseek-r1:free', maxTokens
     }
 }
 
-export { callOpenAI };
+export { callOpenAI, sendMessages };

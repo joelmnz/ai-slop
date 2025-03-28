@@ -81,17 +81,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // --- LLM API Function ---
-    async function callLLMAPI(prompt, model, inputText) {
+    async function callLLMAPI(formattedPrompt, model, inputText) {
         try {
             // Get cached settings
             const settings = await getApiSettings();
-            
-            // Format the prompt correctly
-            const formattedPrompt = prompt; // nothing yet
-            
+
             // Call the imported callOpenAI function with our cached settings
             // Note: Settings are now required, not optional
-            return await callOpenAI(formattedPrompt, model, 8000, inputText, settings);
+            return await callOpenAI(formattedPrompt, model, 8000, settings);
         } catch (error) {
             console.error('LLM API call error:', error);
             throw error;
@@ -478,9 +475,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             const runButton = step.querySelector('.run-step-btn');
             runButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
             runButton.disabled = true;
+
+            // Format the prompt contain the original input and instructions
+            const formattedPrompt = `Context:\n${input}\n\n${instructions}`;
             
             // Call the LLM API function
-            const response = await callLLMAPI(instructions, model, input);
+            const response = await callLLMAPI(formattedPrompt, model, input);
             
             // Store the response in the hidden field
             const hiddenResponseField = step.querySelector('.hidden-llm-response');
