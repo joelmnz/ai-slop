@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Text Transform</title>
+    <!-- Include marked.js for markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.0.0/marked.min.js"></script>
+    <!-- Include highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.3.1/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.3.1/highlight.min.js"></script>
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Include settings CSS and JS -->
+    <link rel="stylesheet" href="../css/settings.css">
+    <script src="../js/settings.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-container">
+            <h1>LLM Text Transform</h1>
+            
+            <div class="controls">
+                <button id="newBtn"><i class="fas fa-file"></i> New</button>
+                <button id="loadBtn"><i class="fas fa-file-upload"></i> Load</button>
+                <button id="saveBtn"><i class="fas fa-save"></i> Save</button>
+                <input type="file" id="loadFile" accept=".json" style="display: none;"> <!-- Hidden file input -->
+                <button id="transformBtn"><i class="fas fa-magic"></i> Run All Steps</button>
+                <button id="cancelTransformBtn" style="display: none;"><i class="fas fa-stop"></i> Cancel</button>
+                <span id="transformProgress" style="display: none;"><i class="fas fa-spinner fa-spin"></i> Running step <span id="currentStepNum">0</span> of <span id="totalStepNum">0</span></span>
+                <button id="toggleMarkdownBtn" title="Toggles Markdown between text input and display "><i class="fas fa-code"></i> Toggle Markdown</button>
+                <button id="settings-button" title="Settings"><i class="fas fa-cog"></i></button>
+            </div>
+        </div>
+
+        <div class="comparison-meta">
+            <div class="title-row">
+                <label for="transformTitle">Transform Title:</label>
+                <input type="text" id="transformTitle" placeholder="Enter a title for this transformation...">
+            </div>
+        </div>
+
+        <div id="transformColumns" class="columns-container">
+            <!-- Three columns for input, transform rules, and output -->
+            <div class="column" id="inputColumn">
+                <div class="input-label-container">
+                    <label for="inputText" class="model-name-label">Input Text:</label>
+                    <span class="input-reference-note">(refer to this as 'content')</span>
+                </div>
+                <textarea id="inputText" class="llm-response-textarea" placeholder="Enter or paste the text you want to transform..."></textarea>
+                <div class="markdown-view" style="display: none;"></div>
+            </div>
+            
+            <div class="column" id="stepsColums">
+                <label class="model-name-label">Transform Steps:</label>
+                <div id="stepsContainer">
+                    <!-- Steps will be added here by JavaScript -->
+                </div>
+                <div class="steps-controls">
+                    <button id="addStepBtn" class="add-step-btn"><i class="fas fa-plus"></i> Add Step</button>
+                </div>
+            </div>
+            
+            <div class="column" id="outputColumn">
+                <label for="outputText" class="model-name-label">Output Text:</label>
+                <textarea id="outputText" class="llm-response-textarea" placeholder="Transformed text will appear here..." readonly></textarea>
+                
+                <div class="preview-container" style="display: none;">
+                    <div class="a4-paper" id="markdown-output"></div>
+                </div>
+                
+                <div class="output-buttons">
+                    <button id="copyBtn" class="output-button"><i class="fas fa-copy"></i> Copy Output</button>
+                    <button id="printBtn" class="output-button"><i class="fas fa-print"></i> Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification container -->
+    <div id="toastContainer"></div>
+
+    <!-- Import the JavaScript file -->
+    <script src="transformer.js"></script>
+</body>
+</html>

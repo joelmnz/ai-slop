@@ -1,0 +1,908 @@
+/* Basic Reset and Dark Theme */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0; /* Light text */
+    font-size: 16px;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Main Container */
+.container {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 20px; /* Space between sections */
+    flex-grow: 1; /* Allow container to grow */
+    overflow: hidden; /* Prevent body scrollbars */
+}
+
+h1 {
+    color: #ffffff;
+    margin-bottom: 10px;
+    text-align: left; /* Changed from center to left */
+}
+
+/* Header Container Layout */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.header-container h1 {
+    margin: 0;
+}
+
+/* Metadata Section (Title) */
+.comparison-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #1e1e1e;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+
+/* Title row styling for inline label and input */
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.title-row label {
+    margin-bottom: 0;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.title-row input {
+    flex-grow: 1;
+    margin-bottom: 0;
+}
+
+label { /* General label styling */
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #bbbbbb;
+    display: block; /* Ensure label takes its own line */
+}
+
+/* Input label and reference note styling */
+.input-label-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.input-reference-note {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: smaller;
+    margin-left: 10px;
+}
+
+/* Input and Textarea Styling */
+input[type="text"],
+select,
+textarea {
+    width: 100%;
+    padding: 10px;
+    background-color: #2a2a2a; /* Darker input background */
+    color: #e0e0e0; /* Light text */
+    border: 1px solid #444; /* Subtle border */
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+select {
+    width: auto;
+    min-width: 120px;
+}
+
+textarea {
+    resize: vertical; /* Allow vertical resize */
+    min-height: 60px; /* Minimum height for prompt */
+    margin-bottom: 0; /* Reset margin for textareas */
+}
+
+/* Controls Section */
+.controls {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 150px;
+    max-width: 70%;
+}
+
+.controls button {
+    width: auto;
+    text-align: left;
+    padding: 8px 12px;
+}
+
+/* Button Styling */
+button {
+    padding: 10px 15px;
+    background-color: #007bff; /* Primary button color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
+
+button#newBtn {
+     background-color: #6c757d; /* Grey for new/reset */
+}
+button#newBtn:hover {
+     background-color: #5a6268;
+}
+
+button#saveBtn {
+     background-color: #28a745; /* Green for save */
+}
+button#saveBtn:hover {
+     background-color: #218838;
+}
+
+button#loadBtn {
+     background-color: #ffc107; /* Yellow for load */
+     color: #212529; /* Dark text for yellow button */
+}
+button#loadBtn:hover {
+     background-color: #e0a800;
+}
+
+button#transformBtn {
+    background-color: #9c27b0; /* Purple for transform */
+}
+button#transformBtn:hover {
+    background-color: #7b1fa2;
+}
+
+button#copyBtn {
+    background-color: #17a2b8; /* Teal for copy */
+    margin-top: 10px;
+}
+button#copyBtn:hover {
+    background-color: #138496;
+}
+
+/* Toast Notification Styling */
+#toastContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 350px;
+}
+
+.toast {
+    background-color: #333;
+    color: #fff;
+    padding: 12px 15px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 250px;
+    max-width: 100%;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+    border-left: 4px solid #007bff; /* Default info color */
+}
+
+.toast.info {
+    border-left-color: #007bff;
+}
+
+.toast.success {
+    border-left-color: #28a745;
+}
+
+.toast.error {
+    border-left-color: #dc3545;
+}
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast.hiding {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.toast-content i {
+    font-size: 1.2rem;
+}
+
+.toast-content i.fa-info-circle {
+    color: #007bff;
+}
+
+.toast-content i.fa-check-circle {
+    color: #28a745;
+}
+
+.toast-content i.fa-exclamation-circle {
+    color: #dc3545;
+}
+
+.toast-close {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 10px;
+}
+
+.toast-close:hover {
+    color: #fff;
+}
+
+/* Columns Container */
+.columns-container {
+    display: flex;
+    gap: 15px; /* Space between columns */
+    flex-grow: 1; /* Takes remaining vertical space */
+    overflow-x: auto; /* Allow horizontal scrolling if columns exceed width */
+    overflow-y: hidden; /* Prevent vertical scrolling here, handled by textareas */
+    padding-bottom: 10px; /* Padding at the bottom */
+    border-top: 1px solid #333; /* Separator line */
+    padding-top: 15px;
+}
+
+/* Individual Column Styling */
+.column {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 300px; /* Flex basis 300px, can grow and shrink */
+    min-width: 250px; /* Minimum width before shrinking stops */
+    background-color: #1e1e1e; /* Slightly lighter than page bg */
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    height: 100%; /* Ensure column tries to fill container height */
+    overflow: hidden; /* Prevent column overflow */
+}
+
+.column .model-name-label { /* Label specific for model name */
+     margin-bottom: 5px;
+}
+
+.column .llm-response-textarea { /* Textarea specific for response */
+    flex-grow: 1; /* Textarea takes remaining space in the column */
+    width: 100%;
+    height: 100%; /* Necessary for flex-grow to work correctly */
+    resize: none; /* Disable manual resize for consistency */
+    font-family: monospace; /* Often good for code/LLM output */
+    font-size: 0.9rem;
+    overflow-y: auto; /* Allow vertical scrolling within textarea */
+    margin-bottom: 15px; /* Space below textarea */
+}
+
+.column .rating-container { /* Container for rating label and input */
+    display: flex;
+    align-items: center; /* Align label and input vertically */
+    gap: 10px; /* Space between label and input */
+    margin-top: auto; /* Push rating to the bottom before remove btn */
+}
+.column .rating-label {
+    margin-bottom: 0; /* Remove default bottom margin */
+    white-space: nowrap; /* Prevent label wrapping */
+}
+
+.model-select {
+    height: 38px;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+}
+
+/* Markdown View Styling */
+.markdown-view {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    display: none; /* Hidden by default */
+}
+
+/* Toggle button styling */
+button#toggleMarkdownBtn {
+    background-color: #6610f2; /* Purple for markdown */
+}
+button#toggleMarkdownBtn:hover {
+    background-color: #5a00e0;
+}
+
+/* Markdown content styling */
+.markdown-view h1, .markdown-view h2, .markdown-view h3, 
+.markdown-view h4, .markdown-view h5, .markdown-view h6 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    line-height: 1.2;
+    color: #ffffff;
+}
+
+.markdown-view h1 {
+    font-size: 1.6em;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.3em;
+}
+
+.markdown-view h2 {
+    font-size: 1.4em;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.3em;
+}
+
+.markdown-view p {
+    margin-top: 0;
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.markdown-view code {
+    font-family: monospace;
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: #3a3a3a;
+    border-radius: 3px;
+}
+
+.markdown-view pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #3a3a3a;
+    border-radius: 3px;
+    margin-bottom: 16px;
+}
+
+.markdown-view pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.markdown-view blockquote {
+    padding: 0 1em;
+    color: #b3b3b3;
+    border-left: 0.25em solid #444;
+    margin: 0 0 16px 0;
+}
+
+.markdown-view ul, .markdown-view ol {
+    padding-left: 2em;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.markdown-view table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.markdown-view table th, .markdown-view table td {
+    padding: 6px 13px;
+    border: 1px solid #444;
+}
+
+.markdown-view table tr {
+    background-color: #2a2a2a;
+    border-top: 1px solid #444;
+}
+
+.markdown-view table tr:nth-child(2n) {
+    background-color: #333;
+}
+
+.markdown-view img {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.markdown-view hr {
+    height: 0.25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #444;
+    border: 0;
+}
+
+/* Dark theme for code highlighting */
+.hljs {
+    background: #2a2a2a;
+    color: #e0e0e0;
+}
+
+/* Icon styling within buttons */
+button i {
+    font-size: 1rem;
+}
+
+/* Steps container styling */
+#stepsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.transform-step {
+    display: flex;
+    flex-direction: column;
+    background-color: #222;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 12px;
+    position: relative;
+}
+
+.step-number {
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    background-color: #3700b3;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.step-instructions-label {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #bbbbbb;
+}
+
+.step-instructions {
+    width: 100%;
+    resize: vertical;
+    min-height: 80px;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.step-model-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.step-model-label {
+    font-weight: bold;
+    color: #bbbbbb;
+    margin-right: 10px;
+}
+
+.step-model-select {
+    flex-grow: 1;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 0.9rem;
+}
+
+.step-model-input {
+    flex-grow: 1;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 0.9rem;
+}
+
+.remove-step-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.remove-step-btn:hover {
+    background-color: #c82333;
+}
+
+.run-step-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.run-step-btn:hover {
+    background-color: #218838;
+}
+
+.run-step-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.steps-controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.add-step-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-step-btn:hover {
+    background-color: #218838;
+}
+
+/* LLM Response Icon Styling */
+.llm-response-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #6610f2;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 1;
+}
+
+.llm-response-icon:hover {
+    transform: scale(1.1);
+    background-color: #5a00e0;
+}
+
+/* Response Popup Styling */
+.response-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.response-popup {
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    background-color: var(--dark-accent);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.response-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #3700b3;
+    border-bottom: 1px solid var(--dark-border);
+}
+
+.response-popup-header h3 {
+    margin: 0;
+    color: white;
+}
+
+.close-popup-btn {
+    background-color: transparent;
+    color: white;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-popup-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.response-popup-content {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(80vh - 60px);
+}
+
+.response-content {
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--dark-text);
+    background-color: var(--dark-bg);
+    padding: 15px;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+/* Active Step Styling */
+.active-step {
+    border: 2px solid #4caf50;
+    background-color: rgba(76, 175, 80, 0.1);
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+}
+
+/* Add these styles for the A4 preview */
+.preview-container {
+    flex: 1;
+    overflow: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-color-alt);
+    position: relative;
+    margin-bottom: 10px;
+    height: 100%;
+}
+
+.a4-paper {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 20mm;
+    margin: 20px auto;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+    color: black;
+    overflow-wrap: break-word;
+}
+
+.output-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.output-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.output-button:hover {
+    background-color: var(--primary-color-hover);
+}
+
+/* Print styles - updated for proper A4 printing */
+@media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
+    
+    html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: white;
+    }
+    
+    .container, .header-container, .controls, .comparison-meta,
+    #stepsContainer, .steps-controls, .output-buttons, #toastContainer,
+    textarea, .column, .preview-container {
+        display: none !important;
+    }
+    
+    .a4-paper {
+        display: block !important;
+        visibility: visible !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 210mm;
+        min-height: auto;
+        padding: 15mm;
+        margin: 0;
+        box-shadow: none;
+        background-color: white;
+        color: black;
+        overflow: visible;
+        page-break-after: always;
+    }
+    
+    .a4-paper * {
+        visibility: visible !important;
+    }
+}
+
+/* Markdown styling for A4 paper */
+.a4-paper h1, .a4-paper h2, .a4-paper h3, .a4-paper h4, .a4-paper h5, .a4-paper h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    line-height: 1.2;
+}
+
+.a4-paper h1 {
+    font-size: 2em;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+}
+
+.a4-paper h2 {
+    font-size: 1.5em;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+}
+
+.a4-paper p {
+    margin-top: 0;
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.a4-paper code {
+    font-family: 'Courier New', monospace;
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: rgba(27, 31, 35, 0.05);
+    border-radius: 3px;
+}
+
+.a4-paper pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f6f8fa;
+    border-radius: 3px;
+}
+
+.a4-paper pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.a4-paper blockquote {
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: 0.25em solid #dfe2e5;
+    margin: 0 0 16px 0;
+}
+
+.a4-paper ul, .a4-paper ol {
+    padding-left: 2em;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.a4-paper table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.a4-paper table th, .a4-paper table td {
+    padding: 6px 13px;
+    border: 1px solid #dfe2e5;
+}
+
+.a4-paper table tr {
+    background-color: #fff;
+    border-top: 1px solid #c6cbd1;
+}
+
+.a4-paper table tr:nth-child(2n) {
+    background-color: #f6f8fa;
+}
+
+.a4-paper img {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.a4-paper hr {
+    height: 0.25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #e1e4e8;
+    border: 0;
+}
