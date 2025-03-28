@@ -1,13 +1,18 @@
 document.addEventListener('DOMContentLoaded', async () => {
     // Try to dynamically import the callOpenAI function
     let sendMessages;
+    let getAvailableModels;
     try {
         const module = await import('../js/llm.js');
         sendMessages = module.sendMessages;
+        getAvailableModels = module.getAvailableModels;
     } catch (error) {
         console.error('Error importing llm.js:', error);
         // Create fallback if import fails
         sendMessages = async (messages, model, maxTokens, settings) => {
+            throw new Error('LLM API module could not be loaded. Please check the console for details.');
+        };
+        getAvailableModels = async (settings) => {
             throw new Error('LLM API module could not be loaded. Please check the console for details.');
         };
     }
@@ -41,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let stepCounter = 0;
     let isTransforming = false;
     let cancelTransformation = false;
+    let availableModels = []; // New state for storing available models
 
     // --- API Settings Cache ---
     let apiSettings = null;
@@ -62,6 +68,198 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         return apiSettings;
+    }
+
+    // --- Fetch available models ---
+    async function fetchAvailableModels() {
+        try {
+            if (typeof window.aiSettings === 'undefined') {
+                throw new Error('Settings manager is not available');
+            }
+            
+            const settings = await getApiSettings();
+            availableModels = await getAvailableModels(settings);
+            
+            return availableModels;
+        } catch (error) {
+            console.error('Error fetching available models:', error);
+            setStatus(`Failed to load model list: ${error.message}`, 'error', 5000);
+            return [];
+        }
+    }
+    
+    // Model selector popup functions
+    let modelSelectorPopup = null;
+    let currentModelInput = null;
+    
+    // Create model selector popup if it doesn't exist
+    function createModelSelectorPopup() {
+        if (modelSelectorPopup) return modelSelectorPopup;
+        
+        // Create popup container
+        modelSelectorPopup = document.createElement('div');
+        modelSelectorPopup.className = 'model-selector-popup';
+        modelSelectorPopup.style.display = 'none';
+        
+        // Add search input
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'model-search-container';
+        
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.className = 'model-search-input';
+        searchInput.placeholder = 'Search models...';
+        
+        searchContainer.appendChild(searchInput);
+        modelSelectorPopup.appendChild(searchContainer);
+        
+        // Add models list container
+        const modelsListContainer = document.createElement('div');
+        modelsListContainer.className = 'models-list-container';
+        modelSelectorPopup.appendChild(modelsListContainer);
+        
+        // Add close button
+        const closeButton = document.createElement('button');
+        closeButton.className = 'model-selector-close';
+        closeButton.innerHTML = '<i class="fas fa-times"></i>';
+        modelSelectorPopup.appendChild(closeButton);
+        
+        // Add event listeners
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            updateModelsList(searchTerm);
+        });
+        
+        closeButton.addEventListener('click', function() {
+            hideModelSelector();
+        });
+        
+        // Close when clicking outside
+        document.addEventListener('click', function(e) {
+            if (modelSelectorPopup && modelSelectorPopup.style.display !== 'none') {
+                // Check if click is outside the popup
+                if (!modelSelectorPopup.contains(e.target) && 
+                    !e.target.classList.contains('model-lookup-btn') &&
+                    !e.target.closest('.model-lookup-btn')) {
+                    hideModelSelector();
+                }
+            }
+        });
+        
+        // Add to body
+        document.body.appendChild(modelSelectorPopup);
+        return modelSelectorPopup;
+    }
+    
+    // Show model selector popup
+    function showModelSelector(modelInput) {
+        // Store reference to the input field
+        currentModelInput = modelInput;
+        
+        // Create popup if it doesn't exist
+        const popup = createModelSelectorPopup();
+        
+        // Position popup near the input
+        const inputRect = modelInput.getBoundingClientRect();
+        popup.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
+        popup.style.left = `${inputRect.left + window.scrollX}px`;
+        popup.style.width = `${Math.max(300, inputRect.width)}px`;
+        
+        // Update models list with any existing filter value
+        const searchInput = popup.querySelector('.model-search-input');
+        searchInput.value = modelInput.value; // Set search to current input value
+        updateModelsList(searchInput.value.toLowerCase());
+        
+        // Show popup
+        popup.style.display = 'block';
+        
+        // Focus search input
+        setTimeout(() => {
+            searchInput.focus();
+        }, 100);
+    }
+    
+    // Hide model selector popup
+    function hideModelSelector() {
+        if (modelSelectorPopup) {
+            modelSelectorPopup.style.display = 'none';
+            currentModelInput = null;
+        }
+    }
+    
+    // Update models list based on search term
+    function updateModelsList(searchTerm = '') {
+        if (!modelSelectorPopup) return;
+        
+        const modelsListContainer = modelSelectorPopup.querySelector('.models-list-container');
+        modelsListContainer.innerHTML = '';
+        
+        // Filter models by search term
+        const filteredModels = availableModels.filter(model => 
+            model.toLowerCase().includes(searchTerm)
+        );
+        
+        if (filteredModels.length === 0) {
+            const noResults = document.createElement('div');
+            noResults.className = 'no-models-message';
+            noResults.textContent = searchTerm ? 
+                'No models matching your search' : 
+                'No models available. Check your API settings.';
+            modelsListContainer.appendChild(noResults);
+            return;
+        }
+        
+        // Create list of models
+        const modelsList = document.createElement('ul');
+        modelsList.className = 'models-list';
+        
+        filteredModels.forEach(model => {
+            const modelItem = document.createElement('li');
+            modelItem.className = 'model-item';
+            modelItem.textContent = model;
+            
+            // Highlight current selection
+            if (currentModelInput && currentModelInput.value === model) {
+                modelItem.classList.add('selected');
+            }
+            
+            // Add click handler
+            modelItem.addEventListener('click', function() {
+                if (currentModelInput) {
+                    currentModelInput.value = model;
+                    // Trigger input event to update run button state
+                    currentModelInput.dispatchEvent(new Event('input'));
+                }
+                hideModelSelector();
+            });
+            
+            modelsList.appendChild(modelItem);
+        });
+        
+        modelsListContainer.appendChild(modelsList);
+    }
+    
+    // Function to show the LLM response popup
+    function showResponsePopup(responseText) {
+        // Create popup if it doesn't exist
+        let overlay = document.getElementById('responsePopupOverlay');
+        if (!overlay) {
+            const popupTemplate = templates.responsePopup();
+            overlay = renderTemplate(popupTemplate, document.body);
+            
+            // Add close button event listener
+            const closeBtn = overlay.querySelector('.close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                overlay.style.display = 'none';
+            });
+        }
+        
+        // Set response content
+        const responseContent = overlay.querySelector('#responseContent');
+        responseContent.textContent = responseText;
+        
+        // Show the popup
+        overlay.style.display = 'flex';
     }
 
     // --- Configure marked options ---
@@ -87,11 +285,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             classes: ['transform-step'],
             attributes: { id: `step${id}`, 'data-step-id': id },
             children: [
-                {
-                    type: 'div',
-                    classes: ['step-number'],
-                    text: id
-                },
                 {
                     type: 'div',
                     classes: ['llm-response-icon'],
@@ -137,14 +330,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                             text: 'Model:'
                         },
                         {
-                            type: 'input',
-                            classes: ['step-model-input'],
-                            attributes: { 
-                                id: `stepModel${id}`,
-                                type: 'text',
-                                placeholder: 'e.g., gpt-4o, claude-3, llama, etc.',
-                                value: data?.model || ''
-                            }
+                            type: 'div',
+                            classes: ['model-input-group'],
+                            children: [
+                                {
+                                    type: 'input',
+                                    classes: ['step-model-input'],
+                                    attributes: { 
+                                        id: `stepModel${id}`,
+                                        type: 'text',
+                                        placeholder: 'e.g., gpt-4o, claude-3, llama, etc.',
+                                        value: data?.model || ''
+                                    }
+                                },
+                                {
+                                    type: 'button',
+                                    classes: ['model-lookup-btn'],
+                                    attributes: { 
+                                        'data-input-id': `stepModel${id}`,
+                                        'title': 'Look up available models'
+                                    },
+                                    html: '<i class="fas fa-search"></i>'
+                                }
+                            ]
                         },
                         {
                             type: 'button',
@@ -156,7 +364,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             type: 'button',
                             classes: ['run-step-btn'],
                             attributes: { 'data-step-id': id },
-                            html: '<i class="fas fa-play"></i> Run Step'
+                            html: '<i class="fas fa-play"></i> Run'
                         }
                     ]
                 }
@@ -306,7 +514,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const steps = stepsContainer.querySelectorAll('.transform-step');
         steps.forEach((step, index) => {
             const stepNumber = index + 1;
-            step.querySelector('.step-number').textContent = stepNumber;
             step.querySelector('.step-instructions-label').textContent = `Step ${stepNumber} Instructions:`;
         });
     }
@@ -520,7 +727,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const step = document.querySelector(`.transform-step[data-step-id="${stepId}"]`);
             if (step) {
                 const runButton = step.querySelector('.run-step-btn');
-                runButton.innerHTML = '<i class="fas fa-play"></i> Run Step';
+                runButton.innerHTML = '<i class="fas fa-play"></i> Run';
                 runButton.disabled = false;
             }
         }
@@ -710,6 +917,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                     setStatus('No LLM response available for this step', 'info');
                 }
             }
+        }
+        
+        // Handle model lookup button clicks
+        if (event.target.classList.contains('model-lookup-btn') || 
+            event.target.closest('.model-lookup-btn')) {
+            
+            const button = event.target.classList.contains('model-lookup-btn') ? 
+                event.target : event.target.closest('.model-lookup-btn');
+            
+            const inputId = button.getAttribute('data-input-id');
+            if (inputId) {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    showModelSelector(input);
+                }
+            }
+            // Prevent event from bubbling up to document click handler
+            event.stopPropagation();
         }
         
         // Handle run step button clicks
@@ -927,4 +1152,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize the page
     resetToDefaultState();
+    
+    // Fetch available models after page initialization
+    fetchAvailableModels().catch(error => {
+        console.error('Failed to initialize models:', error);
+    });
 });
