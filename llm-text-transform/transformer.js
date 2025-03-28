@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     // Function to show the LLM response popup
-    function showResponsePopup(responseText) {
+    function showResponsePopup(responseText, stepId) {
         // Create popup if it doesn't exist
         let overlay = document.getElementById('responsePopupOverlay');
         if (!overlay) {
@@ -314,6 +314,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             closeBtn.addEventListener('click', () => {
                 overlay.style.display = 'none';
             });
+        }
+        
+        // Get step number from step ID
+        let title = "LLM Response";
+        if (stepId) {
+            const step = document.querySelector(`.transform-step[data-step-id="${stepId}"]`);
+            if (step) {
+                const stepLabel = step.querySelector('.step-instructions-label').textContent;
+                // Extract the step number from the label (e.g., "Step 3 Instructions:")
+                const stepNumber = stepLabel.match(/Step\s+(\d+)/i)?.[1] || stepId;
+                title = `Step ${stepNumber} Response`;
+            }
+        }
+        
+        // Set the title
+        const popupTitle = overlay.querySelector('.response-popup-header h3');
+        if (popupTitle) {
+            popupTitle.textContent = title;
         }
         
         // Set response content
@@ -353,7 +371,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     attributes: {
                         'data-step-id': id,
                         'title': 'View LLM Response',
-                        'style': data?.llmResponse ? 'display: block;' : 'display: none;'
+                        'style': data?.llmResponse ? 'display: flex;' : 'display: none;'
                     },
                     html: '<i class="fas fa-robot"></i>'
                 },
@@ -980,7 +998,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const step = document.querySelector(`.transform-step[data-step-id="${stepId}"]`);
                 const responseText = step.querySelector('.hidden-llm-response').value;
                 if (responseText) {
-                    showResponsePopup(responseText);
+                    showResponsePopup(responseText, stepId);
                 } else {
                     setStatus('No LLM response available for this step', 'info');
                 }
