@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loadFile = document.getElementById('loadFile');
     const columnsContainer = document.getElementById('comparisonColumns');
     const comparisonTitleInput = document.getElementById('comparisonTitle');
+    const systemPromptTextarea = document.getElementById('systemPrompt');
+    let systemPromptMarkdown = document.getElementById('systemPromptMarkdown');
     const userPromptTextarea = document.getElementById('userPrompt');
     let userPromptMarkdown = document.getElementById('userPromptMarkdown');
     const toastContainer = document.getElementById('toastContainer');
@@ -243,26 +245,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
         
-        // Handle user prompt - ensure the markdown element exists and is correctly populated
+        // Handle both system and user prompts in markdown view
         if (markdownViewActive) {
-            // Always ensure userPromptMarkdown exists and is accessible
+            // System prompt markdown
+            if (!systemPromptMarkdown) {
+                systemPromptMarkdown = document.getElementById('systemPromptMarkdown');
+            }
+            
+            if (systemPromptMarkdown) {
+                systemPromptMarkdown.innerHTML = marked.parse(systemPromptTextarea.value || '');
+                systemPromptMarkdown.querySelectorAll('pre code').forEach(safeHighlight);
+                systemPromptTextarea.style.display = 'none';
+                systemPromptMarkdown.style.display = 'block';
+            }
+            
+            // User prompt markdown
             if (!userPromptMarkdown) {
                 userPromptMarkdown = document.getElementById('userPromptMarkdown');
             }
             
             if (userPromptMarkdown) {
-                // Render markdown for user prompt
                 userPromptMarkdown.innerHTML = marked.parse(userPromptTextarea.value || '');
-                
-                // Highlight code blocks in user prompt
                 userPromptMarkdown.querySelectorAll('pre code').forEach(safeHighlight);
-                
-                // Show markdown view, hide textarea for user prompt
                 userPromptTextarea.style.display = 'none';
                 userPromptMarkdown.style.display = 'block';
             }
         } else {
-            // Show textarea, hide markdown view for user prompt
+            // Show textareas, hide markdown views
+            systemPromptTextarea.style.display = 'block';
+            if (systemPromptMarkdown) {
+                systemPromptMarkdown.style.display = 'none';
+            }
+            
             userPromptTextarea.style.display = 'block';
             if (userPromptMarkdown) {
                 userPromptMarkdown.style.display = 'none';
@@ -440,6 +454,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function resetToDefaultState() {
          // Clear metadata
         comparisonTitleInput.value = '';
+        systemPromptTextarea.value = 'You are a helpful AI assistant. Provide clear, concise, and accurate responses.';
         userPromptTextarea.value = '';
 
         // Clear existing columns
@@ -471,8 +486,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Get the response textarea to update
             const responseTextarea = column.querySelector('.llm-response-textarea');
             
-            // Get the user prompt
-            const prompt = userPromptTextarea.value.trim();
+            // Get the system and user prompts
+            const systemPrompt = systemPromptTextarea.value.trim();
+            const userPrompt = userPromptTextarea.value.trim();
             
             // Validate inputs
             if (!modelName) {
@@ -480,7 +496,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             
-            if (!prompt) {
+            if (!userPrompt) {
                 setStatus('User prompt cannot be empty', 'error');
                 return;
             }
@@ -501,11 +517,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const messages = [
                 { 
                     role: "system", 
-                    content: "You are a helpful AI assistant. Provide clear, concise, and accurate responses."
+                    content: systemPrompt || "You are a helpful AI assistant. Provide clear, concise, and accurate responses."
                 },
                 { 
                     role: "user", 
-                    content: prompt 
+                    content: userPrompt 
                 }
             ];
             
@@ -578,6 +594,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const comparisonData = {
                 comparisonTitle: comparisonTitleInput.value || "Untitled Comparison",
+                systemPrompt: systemPromptTextarea.value || "",
                 userPrompt: userPromptTextarea.value || "",
                 responses: []
             };
@@ -672,6 +689,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 columnCounter = 0; // Reset counter is crucial here
 
                 comparisonTitleInput.value = loadedData.comparisonTitle || "";
+                systemPromptTextarea.value = loadedData.systemPrompt || "You are a helpful AI assistant. Provide clear, concise, and accurate responses.";
                 userPromptTextarea.value = loadedData.userPrompt || "";
 
                 if (loadedData.responses.length === 0) {
@@ -679,6 +697,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                      // If no responses, add the two default columns
                      resetToDefaultState(); // Or just add two empty columns? Resetting seems safer.
                      comparisonTitleInput.value = loadedData.comparisonTitle || ""; // Re-apply meta after reset
+                     systemPromptTextarea.value = loadedData.systemPrompt || "You are a helpful AI assistant. Provide clear, concise, and accurate responses.";
                      userPromptTextarea.value = loadedData.userPrompt || "";
                 } else {
                     loadedData.responses.forEach(response => {
@@ -721,6 +740,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 markdownView.innerHTML = marked.parse(event.target.value);
                 markdownView.querySelectorAll('pre code').forEach((block) => {
+                    if (typeof hljs !== 'undefined') {
+                        hljs.highlightElement(block);
+                    }
+                });
+            } else if (event.target === systemPromptTextarea) {
+                systemPromptMarkdown.innerHTML = marked.parse(systemPromptTextarea.value);
+                systemPromptMarkdown.querySelectorAll('pre code').forEach((block) => {
                     if (typeof hljs !== 'undefined') {
                         hljs.highlightElement(block);
                     }
@@ -804,7 +830,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Initial Page Load ---
     resetToDefaultState(); // Initialize the page with the default state
     
-    // Ensure the userPromptMarkdown element is properly initialized
+    // Ensure the markdown elements are properly initialized
+    if (!systemPromptMarkdown) {
+        systemPromptMarkdown = document.getElementById('systemPromptMarkdown');
+    }
+    if (systemPromptMarkdown) {
+        systemPromptMarkdown.style.display = 'none';
+    }
+    
     if (!userPromptMarkdown) {
         userPromptMarkdown = document.getElementById('userPromptMarkdown');
     }
