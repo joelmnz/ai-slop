@@ -1,13 +1,18 @@
 document.addEventListener('DOMContentLoaded', async () => {
     // Try to dynamically import the getAvailableModels function from llm.js
     let getAvailableModels;
+    let sendMessages;
     try {
         const module = await import('../js/llm.js');
         getAvailableModels = module.getAvailableModels;
+        sendMessages = module.sendMessages;
     } catch (error) {
         console.error('Error importing llm.js:', error);
         // Create fallback if import fails
         getAvailableModels = async (settings) => {
+            throw new Error('LLM API module could not be loaded. Please check the console for details.');
+        };
+        sendMessages = async (messages, model, maxTokens, settings) => {
             throw new Error('LLM API module could not be loaded. Please check the console for details.');
         };
     }
@@ -456,6 +461,87 @@ document.addEventListener('DOMContentLoaded', async () => {
         setStatus('Comparison reset to default state.', 'info');
     }
 
+    // Run a model and update the response textarea
+    async function runModel(column) {
+        try {
+            // Get the model name from the column
+            const modelNameInput = column.querySelector('.model-name-input');
+            const modelName = modelNameInput.value.trim();
+
+            // Get the response textarea to update
+            const responseTextarea = column.querySelector('.llm-response-textarea');
+            
+            // Get the user prompt
+            const prompt = userPromptTextarea.value.trim();
+            
+            // Validate inputs
+            if (!modelName) {
+                setStatus('Model name cannot be empty', 'error');
+                return;
+            }
+            
+            if (!prompt) {
+                setStatus('User prompt cannot be empty', 'error');
+                return;
+            }
+            
+            // Check if settings are available
+            if (typeof window.aiSettings === 'undefined') {
+                setStatus('Settings not available. Please refresh the page.', 'error', 5000);
+                return;
+            }
+            
+            // Update UI to show processing
+            const runButton = column.querySelector('.run-model-btn');
+            const originalButtonHTML = runButton.innerHTML;
+            runButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            runButton.disabled = true;
+            
+            // Build messages array with system and user messages
+            const messages = [
+                { 
+                    role: "system", 
+                    content: "You are a helpful AI assistant. Provide clear, concise, and accurate responses."
+                },
+                { 
+                    role: "user", 
+                    content: prompt 
+                }
+            ];
+            
+            // Get cached settings
+            const settings = await getApiSettings();
+            
+            // Call the sendMessages function with the messages array
+            const response = await sendMessages(messages, modelName, 8000, settings);
+            
+            // Update the response textarea
+            responseTextarea.value = response;
+            
+            // If markdown view is active, update the response markdown view
+            if (markdownViewActive) {
+                const markdownView = column.querySelector('.markdown-view');
+                if (markdownView) {
+                    markdownView.innerHTML = marked.parse(response);
+                    markdownView.querySelectorAll('pre code').forEach(block => {
+                        if (typeof hljs !== 'undefined') {
+                            hljs.highlightElement(block);
+                        }
+                    });
+                }
+            }
+            
+            setStatus(`${modelName} response generated successfully!`, 'success');
+        } catch (error) {
+            console.error('Error running model:', error);
+            setStatus(`Error: ${error.message}`, 'error', 6000);
+        } finally {
+            // Reset button state
+            const runButton = column.querySelector('.run-model-btn');
+            runButton.innerHTML = '<i class="fas fa-play"></i> Run';
+            runButton.disabled = false;
+        }
+    }
 
     // --- Event Listeners ---
 
@@ -662,8 +748,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
     
-    // Event delegation for model lookup buttons
-    columnsContainer.addEventListener('click', (event) => {
+    // Event delegation for column actions
+    columnsContainer.addEventListener('click', async (event) => {
+        // Handle run model button clicks
+        if (event.target.classList.contains('run-model-btn') || 
+            event.target.closest('.run-model-btn')) {
+            
+            const button = event.target.classList.contains('run-model-btn') ? 
+                event.target : event.target.closest('.run-model-btn');
+            
+            const column = button.closest('.column');
+            if (column) {
+                await runModel(column);
+            }
+        }
+        
         // Handle model lookup button clicks
         if (event.target.classList.contains('model-lookup-btn') || 
             event.target.closest('.model-lookup-btn')) {
@@ -682,7 +781,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             event.stopPropagation();
         }
     });
-    
+
     // Settings button
     if (settingsButton) {
         settingsButton.addEventListener('click', () => {
