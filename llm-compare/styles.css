@@ -130,7 +130,6 @@ input[type="number"] {
      margin-bottom: 0; /* Reset margin for rating input container */
 }
 
-
 textarea {
     resize: vertical; /* Allow vertical resize */
     min-height: 60px; /* Minimum height for prompt */
@@ -196,11 +195,8 @@ button#loadBtn:hover {
      background-color: #e0a800;
 }
 
-
 button.remove-column-btn {
     background-color: #dc3545; /* Red for remove */
-    margin-top: 15px; /* Increased space above remove button */
-    align-self: flex-start; /* Align button left within column */
 }
 
 button.remove-column-btn:hover {
@@ -323,9 +319,6 @@ button.remove-column-btn:hover {
 .column .model-name-label { /* Label specific for model name */
      margin-bottom: 5px;
 }
-.column .model-name-input { /* Input specific for model name */
-     margin-bottom: 15px; /* Space below model name input */
-}
 
 .column .llm-response-label { /* Label specific for response */
      margin-bottom: 5px;
@@ -341,6 +334,29 @@ button.remove-column-btn:hover {
     margin-bottom: 15px; /* Space below textarea */
 }
 
+/* Rating container styling improvements */
+.column .rating-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.rating-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Button styling */
+.btn-success {
+    background-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
 .column .rating-container { /* Container for rating label and input */
     display: flex;
     align-items: center; /* Align label and input vertically */
@@ -350,6 +366,33 @@ button.remove-column-btn:hover {
 .column .rating-label {
     margin-bottom: 0; /* Remove default bottom margin */
     white-space: nowrap; /* Prevent label wrapping */
+}
+
+/* Model input group styling */
+.model-input-group {
+    display: flex;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.model-name-input {
+    flex-grow: 1;
+    border-radius: 4px 0 0 4px;
+}
+
+.model-lookup-btn {
+    background-color: #6610f2;
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    padding: 0 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.model-lookup-btn:hover {
+    background-color: #5a00e0;
 }
 
 /* Markdown View Styling */
@@ -482,4 +525,13 @@ button#toggleMarkdownBtn:hover {
 /* Icon styling within buttons */
 button i {
     font-size: 1rem;
+}
+
+/* Settings button styling */
+button#settings-button {
+    background-color: #6c757d; /* Grey for settings */
+}
+
+button#settings-button:hover {
+    background-color: #5a6268;
 }

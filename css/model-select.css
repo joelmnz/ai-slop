@@ -1,0 +1,197 @@
+/* Model selector popup styling */
+.model-selector-popup {
+    position: fixed;
+    z-index: 1000;
+    background-color: #222;
+    border: 1px solid #444;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 800px;
+    height: 90vh;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.model-selector-popup::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: -1;
+}
+
+.model-search-container {
+    padding: 20px;
+    border-bottom: 1px solid #444;
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+.model-search-input {
+    width: 100%;
+    padding: 12px 15px;
+    padding-right: 40px; /* Space for the clear button */
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    font-size: 1rem;
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    padding: 5px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    transition: all 0.2s;
+}
+
+.search-clear-btn:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.models-list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.models-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.model-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    color: #e0e0e0;
+    border-bottom: 1px solid #333;
+}
+
+.model-item:hover {
+    background-color: #3a3a3a;
+}
+
+.model-item.selected {
+    background-color: rgba(102, 16, 242, 0.2);
+    border-left: 4px solid #6610f2;
+}
+
+.model-name {
+    font-weight: 500;
+    font-size: 1.1rem;
+    margin-right: auto;
+}
+
+.model-context {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-left: 15px;
+    padding-left: 15px;
+    border-left: 1px solid #555;
+    white-space: nowrap;
+}
+
+.model-pricing {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-left: 15px;
+    padding-left: 15px;
+    border-left: 1px solid #555;
+    white-space: nowrap;
+}
+
+.no-models-message {
+    padding: 30px;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    font-size: 1.1rem;
+}
+
+.model-selector-close {
+    position: relative;
+    background: #333;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 8px;
+    font-size: 1.2rem;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+
+.model-selector-close:hover {
+    background-color: #555;
+}
+
+.loading-models {
+    padding: 30px;
+    text-align: center;
+    color: #e0e0e0;
+    font-size: 1.1rem;
+}
+
+/* Model lookup button styling */
+.model-lookup-btn {
+    background-color: #6610f2;
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    padding: 0 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.model-lookup-btn:hover {
+    background-color: #5a00e0;
+}
+
+/* Model input group styling */
+.model-input-group {
+    display: flex;
+    flex-grow: 1;
+}

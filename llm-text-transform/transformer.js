@@ -17,6 +17,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
+    // Import ModelSelector
+    let ModelSelector;
+    try {
+        const module = await import('../js/model-selector.js');
+        ModelSelector = module.default;
+    } catch (error) {
+        console.error('Error importing model-selector.js:', error);
+        // Will use fallback if import fails
+    }
+
     // --- DOM References ---
     const newBtn = document.getElementById('newBtn');
     const saveBtn = document.getElementById('saveBtn');
@@ -38,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const copyBtn = document.getElementById('copyBtn');
     const printBtn = document.getElementById('printBtn');
     const toastContainer = document.getElementById('toastContainer');
-    const settingsBtn = document.getElementById('settings-button');
+    const settingsButton = document.getElementById('settings-button');
 
     // --- State ---
     let markdownViewActive = false;
@@ -49,6 +59,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- API Settings Cache ---
     let apiSettings = null;
+    
+    // Shared ModelSelector instance
+    let modelSelector = null;
+    
+    // Initialize ModelSelector if available
+    if (ModelSelector) {
+        modelSelector = new ModelSelector({
+            container: document.body,
+            onModelSelect: (model) => {
+                // This will be called when a model is selected
+                if (modelSelector.currentInput) {
+                    modelSelector.currentInput.dispatchEvent(new Event('input'));
+                }
+            }
+        });
+    }
     
     // Retrieve API settings once and cache them
     async function getApiSettings() {
@@ -79,6 +105,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const settings = await getApiSettings();
             availableModels = await getAvailableModels(settings);
             
+            // Update the model selector with the available models
+            if (modelSelector) {
+                modelSelector.setModels(availableModels);
+            }
+            
             return availableModels;
         } catch (error) {
             console.error('Error fetching available models:', error);
@@ -87,226 +118,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
     
-    // Model selector popup functions
-    let modelSelectorPopup = null;
-    let currentModelInput = null;
-    
-    // Create model selector popup if it doesn't exist
-    function createModelSelectorPopup() {
-        if (modelSelectorPopup) return modelSelectorPopup;
-        
-        // Create popup container
-        modelSelectorPopup = document.createElement('div');
-        modelSelectorPopup.className = 'model-selector-popup';
-        modelSelectorPopup.style.display = 'none';
-        
-        // Add search input
-        const searchContainer = document.createElement('div');
-        searchContainer.className = 'model-search-container';
-        
-        // Create search input wrapper (for containing input and clear button)
-        const searchInputWrapper = document.createElement('div');
-        searchInputWrapper.className = 'search-input-wrapper';
-        
-        const searchInput = document.createElement('input');
-        searchInput.type = 'text';
-        searchInput.className = 'model-search-input';
-        searchInput.placeholder = 'Search models...';
-        
-        // Create clear button for search input
-        const clearButton = document.createElement('button');
-        clearButton.type = 'button';
-        clearButton.className = 'search-clear-btn';
-        clearButton.innerHTML = '<i class="fas fa-times"></i>';
-        clearButton.title = 'Clear search';
-        
-        // Add searchInput and clearButton to wrapper
-        searchInputWrapper.appendChild(searchInput);
-        searchInputWrapper.appendChild(clearButton);
-        
-        // Add close button to search container
-        const closeButton = document.createElement('button');
-        closeButton.className = 'model-selector-close';
-        closeButton.innerHTML = '<i class="fas fa-times"></i>';
-        
-        // Add elements to container
-        searchContainer.appendChild(searchInputWrapper);
-        searchContainer.appendChild(closeButton);
-        modelSelectorPopup.appendChild(searchContainer);
-        
-        // Add models list container
-        const modelsListContainer = document.createElement('div');
-        modelsListContainer.className = 'models-list-container';
-        modelSelectorPopup.appendChild(modelsListContainer);
-        
-        // Add event listeners
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            updateModelsList(searchTerm);
-        });
-        
-        // Add clear button event listener
-        clearButton.addEventListener('click', function() {
-            searchInput.value = '';
-            searchInput.focus();
-            updateModelsList('');
-        });
-        
-        closeButton.addEventListener('click', function() {
-            hideModelSelector();
-        });
-        
-        // Close when clicking outside
-        document.addEventListener('click', function(e) {
-            if (modelSelectorPopup && modelSelectorPopup.style.display !== 'none') {
-                // Check if click is outside the popup
-                if (!modelSelectorPopup.contains(e.target) && 
-                    !e.target.classList.contains('model-lookup-btn') &&
-                    !e.target.closest('.model-lookup-btn')) {
-                    hideModelSelector();
-                }
-            }
-        });
-        
-        // Add to body
-        document.body.appendChild(modelSelectorPopup);
-        return modelSelectorPopup;
-    }
-    
-    // Show model selector popup
-    async function showModelSelector(modelInput) {
-        // Store reference to the input field
-        currentModelInput = modelInput;
-        
-        // Create popup if it doesn't exist
-        const popup = createModelSelectorPopup();
-        
-        // No need to position near input as it's now centered
-        // Just display the popup
-        
-        // Check if models are cached, fetch if needed
-        if (availableModels.length === 0) {
-            try {
-                // Show loading indicator in popup
-                const modelsListContainer = popup.querySelector('.models-list-container');
-                modelsListContainer.innerHTML = '<div class="loading-models">Loading models...</div>';
-                
-                // Show popup while loading
-                popup.style.display = 'flex'; // Changed from 'block' to 'flex'
-                
-                // Fetch and cache models
-                await fetchAvailableModels();
-            } catch (error) {
-                console.error('Error fetching models:', error);
-                setStatus(`Failed to load models: ${error.message}`, 'error', 5000);
+    // Show model selector popup function - using shared component if available
+    function showModelSelector(modelInput) {
+        if (modelSelector) {
+            // Use the shared ModelSelector component
+            modelSelector.show(modelInput);
+            
+            // If models are not loaded yet, fetch them
+            if (availableModels.length === 0) {
+                modelSelector.showLoading('Loading models...');
+                fetchAvailableModels().then(() => {
+                    modelSelector.updateModelsList(modelInput.value.toLowerCase());
+                });
             }
         } else {
-            // Show popup immediately if models are already cached
-            popup.style.display = 'flex'; // Changed from 'block' to 'flex'
+            // Fallback for when ModelSelector is not available
+            setStatus('Model selector component is not available', 'error', 3000);
         }
-        
-        // Update models list with any existing filter value
-        const searchInput = popup.querySelector('.model-search-input');
-        searchInput.value = modelInput.value; // Set search to current input value
-        updateModelsList(searchInput.value.toLowerCase());
-        
-        // Focus search input
-        setTimeout(() => {
-            searchInput.focus();
-        }, 100);
-        
-        // Add event listener to close popup when clicking outside
-        // This is already handled in the createModelSelectorPopup function
-    }
-    
-    // Hide model selector popup
-    function hideModelSelector() {
-        if (modelSelectorPopup) {
-            modelSelectorPopup.style.display = 'none';
-            currentModelInput = null;
-        }
-    }
-    
-    // Update models list based on search term
-    function updateModelsList(searchTerm = '') {
-        if (!modelSelectorPopup) return;
-        
-        const modelsListContainer = modelSelectorPopup.querySelector('.models-list-container');
-        modelsListContainer.innerHTML = '';
-        
-        // Filter models by search term - now searching in both name and id with null checks
-        const filteredModels = availableModels.filter(model => {
-            const modelName = model.name || '';
-            const modelId = model.id || '';
-            return modelName.toLowerCase().includes(searchTerm) || 
-                   modelId.toLowerCase().includes(searchTerm);
-        });
-        
-        if (filteredModels.length === 0) {
-            const noResults = document.createElement('div');
-            noResults.className = 'no-models-message';
-            noResults.textContent = searchTerm ? 
-                'No models matching your search' : 
-                'No models available. Check your API settings.';
-            modelsListContainer.appendChild(noResults);
-            return;
-        }
-        
-        // Create list of models
-        const modelsList = document.createElement('ul');
-        modelsList.className = 'models-list';
-        
-        filteredModels.forEach(model => {
-            // Skip invalid models
-            if (!model.id) return;
-            
-            const modelItem = document.createElement('li');
-            modelItem.className = 'model-item';
-            
-            // Create model name span
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'model-name';
-            nameSpan.textContent = model.name || model.id;
-            modelItem.appendChild(nameSpan);
-            
-            // Add context length info if available
-            if (model.contextLength) {
-                const contextSpan = document.createElement('span');
-                contextSpan.className = 'model-context';
-                contextSpan.textContent = `${model.contextLength} context`;
-                modelItem.appendChild(contextSpan);
-            }
-            
-            // Add pricing info if available
-            if (model.pricing) {
-                const pricingSpan = document.createElement('span');
-                pricingSpan.className = 'model-pricing';
-                pricingSpan.textContent = model.pricing;
-                modelItem.appendChild(pricingSpan);
-            }
-            
-            // Store model ID as data attribute
-            modelItem.setAttribute('data-model-id', model.id);
-            
-            // Highlight current selection
-            if (currentModelInput && currentModelInput.value === model.id) {
-                modelItem.classList.add('selected');
-            }
-            
-            // Add click handler
-            modelItem.addEventListener('click', function() {
-                if (currentModelInput) {
-                    currentModelInput.value = model.id; // Set the ID as the value
-                    // Trigger input event to update run button state
-                    currentModelInput.dispatchEvent(new Event('input'));
-                }
-                hideModelSelector();
-            });
-            
-            modelsList.appendChild(modelItem);
-        });
-        
-        modelsListContainer.appendChild(modelsList);
     }
     
     // Function to show the LLM response popup
@@ -1089,13 +917,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     printBtn.addEventListener('click', printOutput);
     
     // Settings button
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', () => {
+    if (settingsButton) {
+        settingsButton.addEventListener('click', () => {
             if (typeof window.aiSettings !== 'undefined') {
                 // Reset API settings cache when opening settings
                 apiSettings = null;
                 // Also clear cached models since settings might affect available models
                 availableModels = [];
+                // Reset model selector models
+                if (modelSelector) {
+                    modelSelector.setModels([]);
+                }
                 window.aiSettings.openSettings();
             } else {
                 setStatus('Settings manager is not available', 'error');
