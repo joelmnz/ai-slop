@@ -14,6 +14,8 @@
     <!-- Include settings CSS and JS -->
     <link rel="stylesheet" href="../css/settings.css">
     <script src="../js/settings.js"></script>
+    <!-- Include model selector CSS -->
+    <link rel="stylesheet" href="../css/model-select.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -56,7 +58,30 @@
     <div id="toastContainer"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Try to dynamically import the getAvailableModels function from llm.js
+            let getAvailableModels;
+            try {
+                const module = await import('../js/llm.js');
+                getAvailableModels = module.getAvailableModels;
+            } catch (error) {
+                console.error('Error importing llm.js:', error);
+                // Create fallback if import fails
+                getAvailableModels = async (settings) => {
+                    throw new Error('LLM API module could not be loaded. Please check the console for details.');
+                };
+            }
+
+            // Import ModelSelector
+            let ModelSelector;
+            try {
+                const module = await import('../js/model-selector.js');
+                ModelSelector = module.default;
+            } catch (error) {
+                console.error('Error importing model-selector.js:', error);
+                // Will use fallback if import fails
+            }
+
             // --- DOM References ---
             const newBtn = document.getElementById('newBtn');
             const addColumnBtn = document.getElementById('addColumnBtn');
@@ -81,6 +106,87 @@
             // --- State ---
             let columnCounter = 0; // Initialize counter
             let markdownViewActive = false; // Track markdown view state
+            let availableModels = []; // Will store objects with {id, name}
+            
+            // --- API Settings Cache ---
+            let apiSettings = null;
+            
+            // Shared ModelSelector instance
+            let modelSelector = null;
+            
+            // Initialize ModelSelector if available
+            if (ModelSelector) {
+                modelSelector = new ModelSelector({
+                    container: document.body,
+                    onModelSelect: (model) => {
+                        // This will be called when a model is selected
+                        if (modelSelector.currentInput) {
+                            modelSelector.currentInput.dispatchEvent(new Event('input'));
+                        }
+                    }
+                });
+            }
+            
+            // Retrieve API settings once and cache them
+            async function getApiSettings() {
+                if (apiSettings !== null) {
+                    return apiSettings;
+                }
+                
+                if (typeof window.aiSettings === 'undefined') {
+                    throw new Error('Settings manager is not available. Please refresh the page and try again.');
+                }
+                
+                apiSettings = await window.aiSettings.getSettings();
+                
+                if (!apiSettings.openaiApiKey && !apiSettings.openrouterApiKey) {
+                    throw new Error('API key is missing. Please configure it in the settings.');
+                }
+                
+                return apiSettings;
+            }
+
+            // --- Fetch available models ---
+            async function fetchAvailableModels() {
+                try {
+                    if (typeof window.aiSettings === 'undefined') {
+                        throw new Error('Settings manager is not available');
+                    }
+                    
+                    const settings = await getApiSettings();
+                    availableModels = await getAvailableModels(settings);
+                    
+                    // Update the model selector with the available models
+                    if (modelSelector) {
+                        modelSelector.setModels(availableModels);
+                    }
+                    
+                    return availableModels;
+                } catch (error) {
+                    console.error('Error fetching available models:', error);
+                    setStatus(`Failed to load model list: ${error.message}`, 'error', 5000);
+                    return [];
+                }
+            }
+            
+            // Show model selector popup function
+            function showModelSelector(modelInput) {
+                if (modelSelector) {
+                    // Use the shared ModelSelector component
+                    modelSelector.show(modelInput);
+                    
+                    // If models are not loaded yet, fetch them
+                    if (availableModels.length === 0) {
+                        modelSelector.showLoading('Loading models...');
+                        fetchAvailableModels().then(() => {
+                            modelSelector.updateModelsList(modelInput.value.toLowerCase());
+                        });
+                    }
+                } else {
+                    // Fallback for when ModelSelector is not available
+                    setStatus('Model selector component is not available', 'error', 3000);
+                }
+            }
 
             // --- Configure marked options ---
             marked.setOptions({
@@ -241,14 +347,29 @@
                             text: 'Model Name:'
                         },
                         {
-                            type: 'input',
-                            classes: ['model-name-input'],
-                            attributes: {
-                                type: 'text',
-                                id: `modelName${id}`,
-                                placeholder: 'Model Name',
-                                value: data?.modelName || ''
-                            }
+                            type: 'div',
+                            classes: ['model-input-group'],
+                            children: [
+                                {
+                                    type: 'input',
+                                    classes: ['model-name-input'],
+                                    attributes: {
+                                        type: 'text',
+                                        id: `modelName${id}`,
+                                        placeholder: 'Model Name',
+                                        value: data?.modelName || ''
+                                    }
+                                },
+                                {
+                                    type: 'button',
+                                    classes: ['model-lookup-btn'],
+                                    attributes: { 
+                                        'data-input-id': `modelName${id}`,
+                                        'title': 'Look up available models'
+                                    },
+                                    html: '<i class="fas fa-search"></i>'
+                                }
+                            ]
                         },
                         {
                             type: 'label',
@@ -587,6 +708,27 @@
                 }
             });
             
+            // Event delegation for model lookup buttons
+            columnsContainer.addEventListener('click', (event) => {
+                // Handle model lookup button clicks
+                if (event.target.classList.contains('model-lookup-btn') || 
+                    event.target.closest('.model-lookup-btn')) {
+                    
+                    const button = event.target.classList.contains('model-lookup-btn') ? 
+                        event.target : event.target.closest('.model-lookup-btn');
+                    
+                    const inputId = button.getAttribute('data-input-id');
+                    if (inputId) {
+                        const input = document.getElementById(inputId);
+                        if (input) {
+                            showModelSelector(input);
+                        }
+                    }
+                    // Prevent event from bubbling up to document click handler
+                    event.stopPropagation();
+                }
+            });
+            
             // Settings button
             if (settingsButton) {
                 settingsButton.addEventListener('click', () => {
@@ -595,6 +737,10 @@
                         apiSettings = null;
                         // Also clear cached models since settings might affect available models
                         availableModels = [];
+                        // Reset model selector models if it exists
+                        if (modelSelector) {
+                            modelSelector.setModels([]);
+                        }
                         window.aiSettings.openSettings();
                     } else {
                         setStatus('Settings manager is not available', 'error');
