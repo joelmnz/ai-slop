@@ -339,30 +339,44 @@ document.addEventListener('DOMContentLoaded', async () => {
                     classes: ['rating-container'],
                     children: [
                         {
-                            type: 'label',
-                            classes: ['rating-label'],
-                            attributes: { for: `rating${id}` },
-                            text: 'Rating (1-5):'
+                            type: 'div',
+                            classes: ['rating-controls'],
+                            children: [
+                                {
+                                    type: 'label',
+                                    classes: ['rating-label'],
+                                    attributes: { for: `rating${id}` },
+                                    text: 'Rating (1-5):'
+                                },
+                                {
+                                    type: 'input',
+                                    classes: ['rating-input'],
+                                    attributes: {
+                                        type: 'number',
+                                        id: `rating${id}`,
+                                        min: '1',
+                                        max: '5',
+                                        step: '1',
+                                        placeholder: 'e.g., 3',
+                                        value: data?.rating || ''
+                                    }
+                                },
+                                {
+                                    type: 'button',
+                                    classes: ['run-model-btn', 'btn-success'],
+                                    attributes: {
+                                        title: 'Run this model'
+                                    },
+                                    html: '<i class="fas fa-play"></i> Run'
+                                }
+                            ]
                         },
                         {
-                            type: 'input',
-                            classes: ['rating-input'],
-                            attributes: {
-                                type: 'number',
-                                id: `rating${id}`,
-                                min: '1',
-                                max: '5',
-                                step: '1',
-                                placeholder: 'e.g., 3',
-                                value: data?.rating || ''
-                            }
+                            type: 'button',
+                            classes: ['remove-column-btn'],
+                            html: '<i class="fas fa-trash-alt"></i> '
                         }
                     ]
-                },
-                {
-                    type: 'button',
-                    classes: ['remove-column-btn'],
-                    html: '<i class="fas fa-trash-alt"></i> Remove Column'
                 }
             ]
         })

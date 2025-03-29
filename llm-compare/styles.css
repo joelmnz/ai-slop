@@ -197,8 +197,6 @@ button#loadBtn:hover {
 
 button.remove-column-btn {
     background-color: #dc3545; /* Red for remove */
-    margin-top: 15px; /* Increased space above remove button */
-    align-self: flex-start; /* Align button left within column */
 }
 
 button.remove-column-btn:hover {
@@ -334,6 +332,29 @@ button.remove-column-btn:hover {
     font-size: 0.9rem;
     overflow-y: auto; /* Allow vertical scrolling within textarea */
     margin-bottom: 15px; /* Space below textarea */
+}
+
+/* Rating container styling improvements */
+.column .rating-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.rating-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Button styling */
+.btn-success {
+    background-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
 }
 
 .column .rating-container { /* Container for rating label and input */
