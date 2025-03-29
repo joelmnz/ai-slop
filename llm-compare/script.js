@@ -689,15 +689,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 columnCounter = 0; // Reset counter is crucial here
 
                 comparisonTitleInput.value = loadedData.comparisonTitle || "";
-                systemPromptTextarea.value = loadedData.systemPrompt || "You are a helpful AI assistant. Provide clear, concise, and accurate responses.";
+                
+                // Handle systemPrompt - if field exists use it, otherwise use default
+                const defaultSystemPrompt = "You are a helpful AI assistant. Provide clear, concise, and accurate responses.";
+                systemPromptTextarea.value = typeof loadedData.systemPrompt !== 'undefined' 
+                    ? loadedData.systemPrompt 
+                    : defaultSystemPrompt;
+                    
                 userPromptTextarea.value = loadedData.userPrompt || "";
 
                 if (loadedData.responses.length === 0) {
                      setStatus('Loaded comparison has no responses.', 'info');
                      // If no responses, add the two default columns
                      resetToDefaultState(); // Or just add two empty columns? Resetting seems safer.
-                     comparisonTitleInput.value = loadedData.comparisonTitle || ""; // Re-apply meta after reset
-                     systemPromptTextarea.value = loadedData.systemPrompt || "You are a helpful AI assistant. Provide clear, concise, and accurate responses.";
+                     
+                     // Re-apply metadata after reset
+                     comparisonTitleInput.value = loadedData.comparisonTitle || "";
+                     systemPromptTextarea.value = typeof loadedData.systemPrompt !== 'undefined'
+                        ? loadedData.systemPrompt
+                        : defaultSystemPrompt;
                      userPromptTextarea.value = loadedData.userPrompt || "";
                 } else {
                     loadedData.responses.forEach(response => {
