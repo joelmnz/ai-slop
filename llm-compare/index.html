@@ -11,6 +11,9 @@
     <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.3.1/highlight.min.js"></script>
     <!-- Add Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Include settings CSS and JS -->
+    <link rel="stylesheet" href="../css/settings.css">
+    <script src="../js/settings.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -23,6 +26,7 @@
                 <button id="newBtn"><i class="fas fa-file"></i> New</button>
                 <button id="loadBtn"><i class="fas fa-file-upload"></i> Load</button>
                 <button id="saveBtn"><i class="fas fa-save"></i> Save</button>
+                <button id="settings-button"><i class="fas fa-cog"></i> </button>
                 <input type="file" id="loadFile" accept=".json" style="display: none;"> <!-- Hidden file input -->
                 <button id="addColumnBtn"><i class="fas fa-plus-square"></i> Add Column</button>
                 <button id="toggleMarkdownBtn"><i class="fas fa-code"></i> Toggle Markdown</button>
@@ -54,7 +58,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM References ---
-            const newBtn = document.getElementById('newBtn'); // New Button Ref
+            const newBtn = document.getElementById('newBtn');
             const addColumnBtn = document.getElementById('addColumnBtn');
             const saveBtn = document.getElementById('saveBtn');
             const toggleMarkdownBtn = document.getElementById('toggleMarkdownBtn');
@@ -67,6 +71,7 @@
             const toastContainer = document.getElementById('toastContainer');
             const metaToggle = document.getElementById('metaToggle');
             const comparisonMeta = document.querySelector('.comparison-meta');
+            const settingsButton = document.getElementById('settings-button');
 
             // Ensure highlight.js is initialized
             if (typeof hljs !== 'undefined') {
@@ -396,7 +401,8 @@
 
             // Remove Column (Event Delegation)
             columnsContainer.addEventListener('click', (event) => {
-                if (event.target.classList.contains('remove-column-btn')) {
+                if (event.target.classList.contains('remove-column-btn') || 
+                   event.target.closest('.remove-column-btn')) {
                     const columnToRemove = event.target.closest('.column');
                     if (columnToRemove) {
                         columnToRemove.remove();
@@ -580,6 +586,21 @@
                     setStatus('Metadata expanded', 'info', 2000);
                 }
             });
+            
+            // Settings button
+            if (settingsButton) {
+                settingsButton.addEventListener('click', () => {
+                    if (typeof window.aiSettings !== 'undefined') {
+                        // Reset API settings cache when opening settings
+                        apiSettings = null;
+                        // Also clear cached models since settings might affect available models
+                        availableModels = [];
+                        window.aiSettings.openSettings();
+                    } else {
+                        setStatus('Settings manager is not available', 'error');
+                    }
+                });
+            }
 
             // --- Initial Page Load ---
             resetToDefaultState(); // Initialize the page with the default state

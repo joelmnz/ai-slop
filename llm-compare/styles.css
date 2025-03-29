@@ -483,3 +483,12 @@ button#toggleMarkdownBtn:hover {
 button i {
     font-size: 1rem;
 }
+
+/* Settings button styling */
+button#settings-button {
+    background-color: #6c757d; /* Grey for settings */
+}
+
+button#settings-button:hover {
+    background-color: #5a6268;
+}

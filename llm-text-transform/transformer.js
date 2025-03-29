@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const copyBtn = document.getElementById('copyBtn');
     const printBtn = document.getElementById('printBtn');
     const toastContainer = document.getElementById('toastContainer');
-    const settingsBtn = document.getElementById('settings-button');
+    const settingsButton = document.getElementById('settings-button');
 
     // --- State ---
     let markdownViewActive = false;
@@ -1089,8 +1089,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     printBtn.addEventListener('click', printOutput);
     
     // Settings button
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', () => {
+    if (settingsButton) {
+        settingsButton.addEventListener('click', () => {
             if (typeof window.aiSettings !== 'undefined') {
                 // Reset API settings cache when opening settings
                 apiSettings = null;
