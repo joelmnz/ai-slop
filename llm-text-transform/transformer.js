@@ -17,6 +17,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
+    // Import browser-fs-access for file saving and loading
+    let fileSave;
+    let fileOpen;
+    try {
+        // Use the ESM version from Skypack CDN instead
+        const browserFs = await import('https://cdn.skypack.dev/browser-fs-access');
+        fileSave = browserFs.fileSave;
+        fileOpen = browserFs.fileOpen;
+    } catch (error) {
+        console.error('Error importing browser-fs-access:', error);
+        fileSave = null; // Will use fallback save method
+        fileOpen = null; // Will use fallback load method
+    }
+
     // Import ModelSelector
     let ModelSelector;
     try {
@@ -962,7 +976,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Save and load handlers
-    saveBtn.addEventListener('click', () => {
+    saveBtn.addEventListener('click', async () => {
         try {
             const transformData = {
                 title: transformTitle.value || "Untitled Transformation",
@@ -973,43 +987,88 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const jsonString = JSON.stringify(transformData, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-
+            
             // Generate default filename from the transform title
             const safeTitle = transformData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            const defaultFilename = `lmtx-${safeTitle || 'llm_transform'}`;
+            const defaultFilename = `lmtx-${safeTitle || 'llm_transform'}.json`;
             
-            // Prompt user for filename
-            const userFilename = prompt("Enter filename for saving (without extension):", defaultFilename);
-            
-            // If user cancels the prompt, abort the save
-            if (userFilename === null) {
+            if (fileSave) {
+                // Use browser-fs-access library for modern file saving
+                await fileSave(blob, {
+                    fileName: defaultFilename,
+                    extensions: ['.json'],
+                    description: 'JSON Files',
+                });
+                setStatus('Transformation saved successfully!', 'success');
+            } else {
+                // Fallback to traditional method if browser-fs-access isn't available
+                const url = URL.createObjectURL(blob);
+                const defaultNameWithoutExt = defaultFilename.replace(/\.json$/, '');
+                
+                // Prompt user for filename
+                const userFilename = prompt("Enter filename for saving (without extension):", defaultNameWithoutExt);
+                
+                // If user cancels the prompt, abort the save
+                if (userFilename === null) {
+                    URL.revokeObjectURL(url);
+                    return;
+                }
+                
+                // Use user's filename or default if empty, and sanitize
+                const finalFilename = (userFilename.trim() || defaultNameWithoutExt).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${finalFilename}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                return;
+                setStatus('Transformation saved successfully!', 'success');
             }
-            
-            // Use user's filename or default if empty, and sanitize
-            const finalFilename = (userFilename.trim() || defaultFilename).replace(/[^a-z0-9]/gi, '_').toLowerCase();
-
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${finalFilename}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            setStatus('Transformation saved successfully!', 'success');
-
         } catch (error) {
             console.error("Error saving transformation:", error);
             setStatus(`Error saving file: ${error.message}`, 'error', 5000);
         }
     });
 
-    loadBtn.addEventListener('click', () => {
-        loadFile.click();
+    loadBtn.addEventListener('click', async () => {
+        if (fileOpen) {
+            try {
+                // Use the modern File System Access API via browser-fs-access
+                const file = await fileOpen({
+                    extensions: ['.json'],
+                    description: 'JSON Files',
+                    mimeTypes: ['application/json'],
+                });
+                
+                // Process the file
+                const content = await file.text();
+                let loadedData;
+                
+                try {
+                    loadedData = JSON.parse(content);
+                } catch (error) {
+                    console.error("Error parsing JSON:", error);
+                    setStatus(`Error: Could not parse file. Ensure it's valid JSON. (${error.message})`, 'error', 5000);
+                    return;
+                }
+                
+                processLoadedData(loadedData);
+            } catch (error) {
+                // User cancelled or other error
+                if (error.name !== 'AbortError') {
+                    console.error("Error opening file:", error);
+                    setStatus(`Error opening file: ${error.message}`, 'error', 5000);
+                }
+            }
+        } else {
+            // Fallback to traditional file input
+            loadFile.click();
+        }
     });
 
+    // Handle traditional file input (fallback method)
     loadFile.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -1029,44 +1088,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            if (typeof loadedData !== 'object' || loadedData === null ||
-                typeof loadedData.title === 'undefined' ||
-                typeof loadedData.input === 'undefined' ||
-                !Array.isArray(loadedData.steps))
-            {
-                setStatus('Error: Invalid file format. Missing required fields.', 'error', 5000);
-                loadFile.value = null;
-                return;
-            }
-
-            try {
-                // Clear existing content
-                stepsContainer.innerHTML = '';
-                stepCounter = 0;
-
-                transformTitle.value = loadedData.title || "";
-                inputText.value = loadedData.input || "";
-                outputText.value = loadedData.output || "";
-
-                if (loadedData.steps.length === 0) {
-                    addStep(); // Add default step if none exists
-                } else {
-                    loadedData.steps.forEach(step => {
-                        addStep({
-                            instructions: step.instructions || "",
-                            model: step.model || "",
-                            llmResponse: step.llmResponse || ""
-                        });
-                    });
-                }
-
-                setStatus(`Transformation loaded successfully with ${loadedData.steps.length} step(s).`, 'success');
-            } catch (error) {
-                console.error("Error populating page from loaded data:", error);
-                setStatus(`Error applying loaded data: ${error.message}`, 'error', 5000);
-            } finally {
-                loadFile.value = null;
-            }
+            processLoadedData(loadedData);
         };
 
         reader.onerror = (e) => {
@@ -1077,6 +1099,48 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         reader.readAsText(file);
     });
+
+    // Helper function to process the loaded data (extracted to avoid code duplication)
+    function processLoadedData(loadedData) {
+        if (typeof loadedData !== 'object' || loadedData === null ||
+            typeof loadedData.title === 'undefined' ||
+            typeof loadedData.input === 'undefined' ||
+            !Array.isArray(loadedData.steps))
+        {
+            setStatus('Error: Invalid file format. Missing required fields.', 'error', 5000);
+            loadFile.value = null;
+            return;
+        }
+
+        try {
+            // Clear existing content
+            stepsContainer.innerHTML = '';
+            stepCounter = 0;
+
+            transformTitle.value = loadedData.title || "";
+            inputText.value = loadedData.input || "";
+            outputText.value = loadedData.output || "";
+
+            if (loadedData.steps.length === 0) {
+                addStep(); // Add default step if none exists
+            } else {
+                loadedData.steps.forEach(step => {
+                    addStep({
+                        instructions: step.instructions || "",
+                        model: step.model || "",
+                        llmResponse: step.llmResponse || ""
+                    });
+                });
+            }
+
+            setStatus(`Transformation loaded successfully with ${loadedData.steps.length} step(s).`, 'success');
+        } catch (error) {
+            console.error("Error populating page from loaded data:", error);
+            setStatus(`Error applying loaded data: ${error.message}`, 'error', 5000);
+        } finally {
+            loadFile.value = null;
+        }
+    }
 
     // Initialize the page
     resetToDefaultState();
