@@ -99,6 +99,27 @@
             font-size: 0.9rem;
             opacity: 0.8;
         }
+        
+        /* Footer styles */
+        .footer {
+            margin-top: 2rem;
+            text-align: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--dark-border);
+        }
+        .github-link {
+            color: var(--dark-text);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+        .github-link:hover {
+            color: var(--dark-highlight);
+        }
+        .github-icon {
+            margin-right: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -151,6 +172,12 @@
                     </a>
                 </li>
             </ul>
+        </div>
+        
+        <div class="footer">
+            <a href="https://github.com/joelmnz/ai-slop" class="github-link" target="_blank">
+                <i class="fab fa-github github-icon"></i> View on GitHub - By joelmnz
+            </a>
         </div>
     </div>
     
