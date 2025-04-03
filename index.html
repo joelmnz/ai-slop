@@ -120,6 +120,13 @@
         .github-icon {
             margin-right: 0.5rem;
         }
+        
+        /* Subtext style for smaller, greyed-out text */
+        .subtext {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -127,7 +134,7 @@
         <div class="header-container">
             <h1><span class="highlight">AI Slop</span></h1>
             <div class="description">
-                AI Generated tools, because I can. (no there is not light-mode)
+                AI Generated tools, because I can. <span class="subtext">(no, there is not light-mode)</span>
             </div>
             <button id="settings-button">
                 <i class="fas fa-cog"></i> Settings
