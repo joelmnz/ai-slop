@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let isTransforming = false;
     let cancelTransformation = false;
     let availableModels = []; // Will now store objects with {id, name} instead of just strings
+    let lastUsedFilename = null; // Track last used filename for saving
 
     // --- API Settings Cache ---
     let apiSettings = null;
@@ -490,6 +491,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Clear existing steps
         stepsContainer.innerHTML = '';
         stepCounter = 0;
+        
+        // Reset filename tracking
+        lastUsedFilename = null;
         
         // Add default first step
         addStep();
@@ -988,17 +992,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             const jsonString = JSON.stringify(transformData, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
             
-            // Generate default filename from the transform title
+            // Generate default filename from the transform title or use the last used filename
             const safeTitle = transformData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            const defaultFilename = `lmtx-${safeTitle || 'llm_transform'}.json`;
+            const defaultFilename = lastUsedFilename || `lmtx-${safeTitle || 'llm_transform'}.json`;
             
             if (fileSave) {
                 // Use browser-fs-access library for modern file saving
-                await fileSave(blob, {
+                const savedFile = await fileSave(blob, {
                     fileName: defaultFilename,
                     extensions: ['.json'],
                     description: 'JSON Files',
                 });
+                
+                // Store the filename for next save
+                if (savedFile && savedFile.name) {
+                    lastUsedFilename = savedFile.name;
+                }
+                
                 setStatus('Transformation saved successfully!', 'success');
             } else {
                 // Fallback to traditional method if browser-fs-access isn't available
@@ -1016,10 +1026,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 // Use user's filename or default if empty, and sanitize
                 const finalFilename = (userFilename.trim() || defaultNameWithoutExt).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                const fullFilename = `${finalFilename}.json`;
+                
+                // Remember this filename for next save
+                lastUsedFilename = fullFilename;
 
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${finalFilename}.json`;
+                a.download = fullFilename;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -1041,6 +1055,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     description: 'JSON Files',
                     mimeTypes: ['application/json'],
                 });
+                
+                // Remember the filename for future saves
+                if (file && file.name) {
+                    lastUsedFilename = file.name;
+                }
                 
                 // Process the file
                 const content = await file.text();
@@ -1072,6 +1091,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadFile.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (!file) return;
+
+        // Remember the filename for future saves
+        if (file.name) {
+            lastUsedFilename = file.name;
+        }
 
         const reader = new FileReader();
 
