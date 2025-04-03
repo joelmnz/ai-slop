@@ -274,3 +274,25 @@
 .security-warning i {
     margin-right: 3px;
 }
+
+/* Home button styling */
+.home-button {
+    background-color: var(--dark-accent, #2a2a2a);
+    color: var(--dark-text, #e0e0e0);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    margin-right: 15px;
+    transition: all 0.2s ease;
+    border: 1px solid var(--dark-border, #444);
+}
+
+.home-button:hover {
+    background-color: var(--dark-highlight, #3498db);
+    color: white;
+    border-color: var(--dark-highlight, #3498db);
+}

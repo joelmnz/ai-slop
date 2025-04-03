@@ -9,9 +9,8 @@
     <!-- Include highlight.js for code syntax highlighting -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.3.1/styles/github.min.css">
     <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.3.1/highlight.min.js"></script>
-    <script>
-        hljs.initHighlightingOnLoad();
-    </script>
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Include mermaid.js for diagram support -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid@8.13.8/dist/mermaid.min.js"></script>
     <script>
@@ -112,6 +111,29 @@
             background-color: #5a5a5a;
         }
 
+        .editor-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .home-button {
+            background-color: #4a4a4a;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            margin-right: 15px;
+        }
+
+        .home-button:hover {
+            background-color: #5a5a5a;
+        }
+
         /* Print styles */
         @media print {
             body, .container, .preview-pane, .preview-container {
@@ -138,6 +160,10 @@
                 margin: 0;
                 box-shadow: none;
                 page-break-after: always;
+            }
+
+            .home-button {
+                display: none;
             }
         }
 
@@ -239,7 +265,10 @@
 <body>
     <div class="container">
         <div class="editor-pane">
-            <h1>Markdown Editor</h1>
+            <div class="editor-header">
+                <a href="../index.html" class="home-button"><i class="fas fa-home"></i> Home</a>
+                <h1>Markdown Editor</h1>
+            </div>
             <textarea id="markdown-input" placeholder="Enter your markdown text here..."></textarea>
             <div class="button-group">
                 <button id="print-btn">Print Document</button>
@@ -262,6 +291,11 @@
             const printBtn = document.getElementById('print-btn');
             const clearBtn = document.getElementById('clear-btn');
             const sampleBtn = document.getElementById('sample-btn');
+
+            // Initialize highlight.js here instead
+            if (typeof hljs !== 'undefined') {
+                hljs.initHighlightingOnLoad();
+            }
 
             // Configure marked options
             marked.setOptions({
