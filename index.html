@@ -42,9 +42,17 @@
             color: var(--dark-highlight);
         }
         .description {
-            text-align: center;
             color: var(--dark-text);
+            margin-bottom: 0;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
             margin-bottom: 2rem;
+        }
+        .header-container h1 {
+            margin-bottom: 0;
         }
         .projects {
             margin-top: 2rem;
@@ -95,24 +103,23 @@
 </head>
 <body>
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>Welcome to <span class="highlight">AI Slop</span></h1>
+        <div class="header-container">
+            <h1><span class="highlight">AI Slop</span></h1>
+            <div class="description">
+                AI Generated tools, because I can.
+            </div>
             <button id="settings-button">
                 <i class="fas fa-cog"></i> Settings
             </button>
         </div>
-        <div class="description">
-            <p>Generated AI Slop because I can.</p>
-        </div>
         <div class="projects">
-            <h2>Available Tools</h2>
             <ul class="project-list">
                 <li>
                     <a href="github-release-notes-watcher/">
                         <div class="project-icon"><i class="fas fa-bell"></i></div>
                         <div class="project-content">
                             <div class="project-title">GitHub Release Notes Watcher</div>
-                            <div class="project-description">Monitor and track release notes for your favorite GitHub repositories</div>
+                            <div class="project-description">View release notes for your favorite GitHub repositories in one place</div>
                         </div>
                     </a>
                 </li>
@@ -121,7 +128,7 @@
                         <div class="project-icon"><i class="fas fa-print"></i></div>
                         <div class="project-content">
                             <div class="project-title">Printable Markdown</div>
-                            <div class="project-description">Convert markdown files to print-friendly formats with customizable styling</div>
+                            <div class="project-description">Paste markdown text, print formatted view</div>
                         </div>
                     </a>
                 </li>
