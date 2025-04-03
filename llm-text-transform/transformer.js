@@ -457,7 +457,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Toggle Markdown View Function
     function toggleMarkdownView() {
-        markdownViewActive = !markdownViewActive;
+        setMarkdownView(!markdownViewActive);
+    }
+
+    function setMarkdownView(forceState = null) {
+        // If forceState is provided, use it; otherwise toggle the current state
+        if (forceState !== null) {
+            markdownViewActive = forceState;
+        } else {
+            markdownViewActive = !markdownViewActive;
+        }
         
         if (markdownViewActive) {
             // Update the output markdown view
@@ -478,7 +487,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             toggleMarkdownBtn.innerHTML = '<i class="fas fa-code"></i> Toggle Markdown';
         }
         
-        setStatus(markdownViewActive ? 'Showing rendered markdown' : 'Showing raw text', 'info');
     }
 
     // Reset Function
@@ -498,14 +506,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Add default first step
         addStep();
         
-        // Reset views
-        if (markdownViewActive) {
-            outputText.style.display = 'none';
-            previewContainer.style.display = 'block';
-        } else {
-            outputText.style.display = 'block';
-            previewContainer.style.display = 'none';
-        }
+        // Ensure the view state matches markdownViewActive
+        setMarkdownView(false);
         
         setStatus('Reset to default state', 'info');
     }
@@ -1151,6 +1153,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             transformTitle.value = loadedData.title || "";
             inputText.value = loadedData.input || "";
             outputText.value = loadedData.output || "";
+
+            // Reset markdown view to raw text mode
+            if (markdownViewActive) {
+                setMarkdownView(false); // Force raw text mode
+            }
 
             if (loadedData.steps.length === 0) {
                 addStep(); // Add default step if none exists
