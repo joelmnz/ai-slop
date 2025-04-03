@@ -795,12 +795,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Create a print-friendly version
         const printContent = document.createElement('div');
         printContent.className = 'print-content';
-        printContent.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;z-index:9999;background:white;';
         
         // Clone the markdown output
         const clonedContent = markdownOutput.cloneNode(true);
         clonedContent.style.display = 'block';
         clonedContent.style.visibility = 'visible';
+        
+        // Ensure code blocks are properly formatted for printing
+        clonedContent.querySelectorAll('pre code').forEach(block => {
+            block.style.whiteSpace = 'pre-wrap';
+            block.style.wordWrap = 'break-word';
+            block.style.overflowWrap = 'break-word';
+        });
+        
         printContent.appendChild(clonedContent);
         
         // Append to body temporarily
@@ -810,7 +817,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => {
             window.print();
             
-            // Remove the temporary element after printing
+            // Remove the temporary content after printing
             setTimeout(() => {
                 document.body.removeChild(printContent);
                 
