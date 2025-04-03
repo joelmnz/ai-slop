@@ -42,9 +42,17 @@
             color: var(--dark-highlight);
         }
         .description {
-            text-align: center;
             color: var(--dark-text);
+            margin-bottom: 0;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
             margin-bottom: 2rem;
+        }
+        .header-container h1 {
+            margin-bottom: 0;
         }
         .projects {
             margin-top: 2rem;
@@ -58,40 +66,125 @@
         }
         .project-list a {
             display: block;
-            padding: 1rem;
+            padding: 1.5rem;
             background-color: var(--dark-bg);
-            border-radius: 5px;
+            border-radius: 8px;
             text-decoration: none;
             color: var(--dark-text);
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
         }
         .project-list a:hover {
             background-color: var(--dark-hover);
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
+        .project-icon {
+            font-size: 2rem;
+            margin-right: 1.5rem;
+            color: var(--dark-highlight);
+            min-width: 40px;
+            text-align: center;
+        }
+        .project-content {
+            flex: 1;
+        }
+        .project-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .project-description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        /* Footer styles */
+        .footer {
+            margin-top: 2rem;
+            text-align: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--dark-border);
+        }
+        .github-link {
+            color: var(--dark-text);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+        .github-link:hover {
+            color: var(--dark-highlight);
+        }
+        .github-icon {
+            margin-right: 0.5rem;
+        }
+        
+        /* Subtext style for smaller, greyed-out text */
+        .subtext {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>Welcome to <span class="highlight">AI Slop</span></h1>
+        <div class="header-container">
+            <h1><span class="highlight">AI Slop</span></h1>
+            <div class="description">
+                AI Generated tools, because I can. <span class="subtext">(no, there is not light-mode)</span>
+            </div>
             <button id="settings-button">
                 <i class="fas fa-cog"></i> Settings
             </button>
         </div>
-        <div class="description">
-            <p>Exploring the messy world of ai generated tools.</p>
-            <p>Here you'll find various AI-related tools.</p>
-        </div>
         <div class="projects">
-            <h2>Available Tools</h2>
             <ul class="project-list">
-                <li><a href="github-release-notes-watcher/">GitHub Release Notes Watcher - Track repository releases</a></li>
-                <li><a href="printable-markdown/">Printable Markdown - Convert and print markdown documents</a></li>
-                <li><a href="llm-compare/">LLM Compare - Compare different language models</a></li>
-                <li><a href="llm-text-transform/">Text Transform - Use AI to transform text using multiple steps</a></li>
+                <li>
+                    <a href="github-release-notes-watcher/">
+                        <div class="project-icon"><i class="fas fa-bell"></i></div>
+                        <div class="project-content">
+                            <div class="project-title">GitHub Release Notes Watcher</div>
+                            <div class="project-description">View release notes for your favorite GitHub repositories in one place</div>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="printable-markdown/">
+                        <div class="project-icon"><i class="fas fa-print"></i></div>
+                        <div class="project-content">
+                            <div class="project-title">Printable Markdown</div>
+                            <div class="project-description">Paste markdown text, print formatted view</div>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="llm-compare/">
+                        <div class="project-icon"><i class="fas fa-exchange-alt"></i></div>
+                        <div class="project-content">
+                            <div class="project-title">LLM Compare</div>
+                            <div class="project-description">Compare responses from different language models side by side</div>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="llm-text-transform/">
+                        <div class="project-icon"><i class="fas fa-text-height"></i></div>
+                        <div class="project-content">
+                            <div class="project-title">Text Transform</div>
+                            <div class="project-description">Apply AI-powered multi-step transformations to your text content</div>
+                        </div>
+                    </a>
+                </li>
             </ul>
+        </div>
+        
+        <div class="footer">
+            <a href="https://github.com/joelmnz/ai-slop" class="github-link" target="_blank">
+                <i class="fab fa-github github-icon"></i> View on GitHub - By joelmnz
+            </a>
         </div>
     </div>
     

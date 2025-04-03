@@ -985,3 +985,63 @@ button i {
 .model-lookup-btn:hover {
     background-color: #5a00e0;
 }
+
+/* Print-friendly content container */
+.print-content {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background: white;
+    padding: 20px;
+    overflow: auto;
+    box-sizing: border-box;
+    color: black;
+}
+
+/* Print-specific styles for proper pagination */
+@media print {
+    @page {
+        margin: 1cm;
+        size: auto;
+    }
+    
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    
+    .print-content {
+        position: relative !important;
+        height: auto !important;
+        overflow: visible !important;
+        page-break-inside: auto;
+    }
+    
+    .print-content p, 
+    .print-content h1, 
+    .print-content h2, 
+    .print-content h3 {
+        page-break-inside: avoid;
+    }
+    
+    .print-content pre {
+        white-space: pre-wrap;
+        page-break-inside: avoid;
+        overflow: visible;
+    }
+    
+    .print-content img {
+        max-width: 100%;
+        page-break-inside: avoid;
+    }
+    
+    /* Ensure code blocks aren't cut off */
+    .print-content code {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+}

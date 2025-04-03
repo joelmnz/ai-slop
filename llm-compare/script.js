@@ -17,6 +17,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
+    // Import browser-fs-access for file saving and loading
+    let fileSave;
+    let fileOpen;
+    try {
+        // Use the ESM version from Skypack CDN instead
+        const browserFs = await import('https://cdn.skypack.dev/browser-fs-access');
+        fileSave = browserFs.fileSave;
+        fileOpen = browserFs.fileOpen;
+    } catch (error) {
+        console.error('Error importing browser-fs-access:', error);
+        fileSave = null; // Will use fallback save method
+        fileOpen = null; // Will use fallback load method
+    }
+
     // Import ModelSelector
     let ModelSelector;
     try {
@@ -54,6 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let columnCounter = 0; // Initialize counter
     let markdownViewActive = false; // Track markdown view state
     let availableModels = []; // Will store objects with {id, name}
+    let lastUsedFilename = null; // Track last used filename for saving
     
     // --- API Settings Cache ---
     let apiSettings = null;
@@ -463,6 +478,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Reset column counter
         columnCounter = 0;
 
+        // Reset last used filename
+        lastUsedFilename = null;
+
         // Add two default columns
         const column1 = createColumn(); // Creates column with ID suffix 1
         const column2 = createColumn(); // Creates column with ID suffix 2
@@ -590,7 +608,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Save Comparison
-    saveBtn.addEventListener('click', () => {
+    saveBtn.addEventListener('click', async () => {
         try {
             const comparisonData = {
                 comparisonTitle: comparisonTitleInput.value || "Untitled Comparison",
@@ -615,48 +633,112 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const jsonString = JSON.stringify(comparisonData, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-
-            // Generate default filename from the comparison title
+            
+            // Generate default filename from the comparison title if no filename is remembered
             const safeTitle = comparisonData.comparisonTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            const defaultFilename = `${safeTitle || 'llm_comparison'}`;
+            const defaultFilename = lastUsedFilename || `${safeTitle || 'llm_comparison'}.json`;
             
-            // Prompt user for filename
-            const userFilename = prompt("Enter filename for saving (without extension):", defaultFilename);
-            
-            // If user cancels the prompt, abort the save
-            if (userFilename === null) {
+            if (fileSave) {
+                // Use browser-fs-access library for modern file saving
+                const savedFile = await fileSave(blob, {
+                    fileName: defaultFilename,
+                    extensions: ['.json'],
+                    description: 'JSON Files',
+                });
+                
+                // Store the filename for next save
+                if (savedFile && savedFile.name) {
+                    lastUsedFilename = savedFile.name;
+                }
+                
+                setStatus('Comparison saved successfully!', 'success');
+            } else {
+                // Fallback to traditional method if browser-fs-access isn't available
+                const url = URL.createObjectURL(blob);
+                const defaultNameWithoutExt = defaultFilename.replace(/\.json$/, '');
+                
+                // Prompt user for filename
+                const userFilename = prompt("Enter filename for saving (without extension):", defaultNameWithoutExt);
+                
+                // If user cancels the prompt, abort the save
+                if (userFilename === null) {
+                    URL.revokeObjectURL(url);
+                    return;
+                }
+                
+                // Use user's filename or default if empty, and sanitize
+                const finalFilename = (userFilename.trim() || defaultNameWithoutExt).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                const fullFilename = `${finalFilename}.json`;
+                
+                // Remember this filename for next save
+                lastUsedFilename = fullFilename;
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fullFilename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                return;
+                setStatus('Comparison saved successfully!', 'success');
             }
-            
-            // Use user's filename or default if empty, and sanitize
-            const finalFilename = (userFilename.trim() || defaultFilename).replace(/[^a-z0-9]/gi, '_').toLowerCase();
-
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${finalFilename}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            setStatus('Comparison saved successfully!', 'success');
-
         } catch (error) {
             console.error("Error saving comparison:", error);
             setStatus(`Error saving file: ${error.message}`, 'error', 5000);
         }
     });
 
-    // Load Comparison - Trigger File Input
-    loadBtn.addEventListener('click', () => {
-        loadFile.click();
+    // Load Comparison - Trigger file picker or input
+    loadBtn.addEventListener('click', async () => {
+        if (fileOpen) {
+            try {
+                // Use the modern File System Access API via browser-fs-access
+                const file = await fileOpen({
+                    extensions: ['.json'],
+                    description: 'JSON Files',
+                    mimeTypes: ['application/json'],
+                });
+                
+                // Remember the filename for future saves
+                if (file && file.name) {
+                    lastUsedFilename = file.name;
+                }
+                
+                // Process the file
+                const content = await file.text();
+                let loadedData;
+                
+                try {
+                    loadedData = JSON.parse(content);
+                } catch (error) {
+                    console.error("Error parsing JSON:", error);
+                    setStatus(`Error: Could not parse file. Ensure it's valid JSON. (${error.message})`, 'error', 5000);
+                    return;
+                }
+                
+                processLoadedData(loadedData);
+            } catch (error) {
+                // User cancelled or other error
+                if (error.name !== 'AbortError') {
+                    console.error("Error opening file:", error);
+                    setStatus(`Error opening file: ${error.message}`, 'error', 5000);
+                }
+            }
+        } else {
+            // Fallback to traditional file input
+            loadFile.click();
+        }
     });
 
-    // Load Comparison - Handle File Selection
+    // Handle traditional file input (fallback method)
     loadFile.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (!file) return;
+
+        // Remember the filename for future saves
+        if (file.name) {
+            lastUsedFilename = file.name;
+        }
 
         const reader = new FileReader();
 
@@ -673,60 +755,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            if (typeof loadedData !== 'object' || loadedData === null ||
-                typeof loadedData.comparisonTitle === 'undefined' ||
-                typeof loadedData.userPrompt === 'undefined' ||
-                !Array.isArray(loadedData.responses))
-            {
-                setStatus('Error: Invalid file format. Missing required fields.', 'error', 5000);
-                loadFile.value = null;
-                return;
-            }
-
-            try {
-                // Clear existing content and reset counter before loading
-                columnsContainer.innerHTML = '';
-                columnCounter = 0; // Reset counter is crucial here
-
-                comparisonTitleInput.value = loadedData.comparisonTitle || "";
-                
-                // Handle systemPrompt - if field exists use it, otherwise use default
-                const defaultSystemPrompt = "You are a helpful AI assistant. Provide clear, concise, and accurate responses.";
-                systemPromptTextarea.value = typeof loadedData.systemPrompt !== 'undefined' 
-                    ? loadedData.systemPrompt 
-                    : defaultSystemPrompt;
-                    
-                userPromptTextarea.value = loadedData.userPrompt || "";
-
-                if (loadedData.responses.length === 0) {
-                     setStatus('Loaded comparison has no responses.', 'info');
-                     // If no responses, add the two default columns
-                     resetToDefaultState(); // Or just add two empty columns? Resetting seems safer.
-                     
-                     // Re-apply metadata after reset
-                     comparisonTitleInput.value = loadedData.comparisonTitle || "";
-                     systemPromptTextarea.value = typeof loadedData.systemPrompt !== 'undefined'
-                        ? loadedData.systemPrompt
-                        : defaultSystemPrompt;
-                     userPromptTextarea.value = loadedData.userPrompt || "";
-                } else {
-                    loadedData.responses.forEach(response => {
-                        if (typeof response === 'object' && response !== null) {
-                            const newColumn = createColumn(response);
-                            columnsContainer.appendChild(newColumn);
-                        } else {
-                            console.warn("Skipping invalid response item during load:", response);
-                        }
-                    });
-                     setStatus(`Comparison loaded successfully with ${loadedData.responses.length} response(s).`, 'success');
-                }
-
-            } catch (error) {
-                 console.error("Error populating page from loaded data:", error);
-                 setStatus(`Error applying loaded data: ${error.message}`, 'error', 5000);
-            } finally {
-                 loadFile.value = null;
-            }
+            processLoadedData(loadedData);
         };
 
         reader.onerror = (e) => {
@@ -737,6 +766,64 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         reader.readAsText(file);
     });
+
+    // Helper function to process the loaded data (extracted to avoid code duplication)
+    function processLoadedData(loadedData) {
+        if (typeof loadedData !== 'object' || loadedData === null ||
+            typeof loadedData.comparisonTitle === 'undefined' ||
+            typeof loadedData.userPrompt === 'undefined' ||
+            !Array.isArray(loadedData.responses))
+        {
+            setStatus('Error: Invalid file format. Missing required fields.', 'error', 5000);
+            loadFile.value = null;
+            return;
+        }
+
+        try {
+            // Clear existing content and reset counter before loading
+            columnsContainer.innerHTML = '';
+            columnCounter = 0; // Reset counter is crucial here
+
+            comparisonTitleInput.value = loadedData.comparisonTitle || "";
+            
+            // Handle systemPrompt - if field exists use it, otherwise use default
+            const defaultSystemPrompt = "You are a helpful AI assistant. Provide clear, concise, and accurate responses.";
+            systemPromptTextarea.value = typeof loadedData.systemPrompt !== 'undefined' 
+                ? loadedData.systemPrompt 
+                : defaultSystemPrompt;
+                
+            userPromptTextarea.value = loadedData.userPrompt || "";
+
+            if (loadedData.responses.length === 0) {
+                 setStatus('Loaded comparison has no responses.', 'info');
+                 // If no responses, add the two default columns
+                 resetToDefaultState(); // Or just add two empty columns? Resetting seems safer.
+                 
+                 // Re-apply metadata after reset
+                 comparisonTitleInput.value = loadedData.comparisonTitle || "";
+                 systemPromptTextarea.value = typeof loadedData.systemPrompt !== 'undefined'
+                    ? loadedData.systemPrompt
+                    : defaultSystemPrompt;
+                 userPromptTextarea.value = loadedData.userPrompt || "";
+            } else {
+                loadedData.responses.forEach(response => {
+                    if (typeof response === 'object' && response !== null) {
+                        const newColumn = createColumn(response);
+                        columnsContainer.appendChild(newColumn);
+                    } else {
+                        console.warn("Skipping invalid response item during load:", response);
+                    }
+                });
+                 setStatus(`Comparison loaded successfully with ${loadedData.responses.length} response(s).`, 'success');
+            }
+
+        } catch (error) {
+             console.error("Error populating page from loaded data:", error);
+             setStatus(`Error applying loaded data: ${error.message}`, 'error', 5000);
+        } finally {
+             loadFile.value = null;
+        }
+    }
 
     // Toggle Markdown View
     toggleMarkdownBtn.addEventListener('click', toggleMarkdownView);
