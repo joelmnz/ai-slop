@@ -24,7 +24,13 @@
         <div class="header-container">
             <a href="../index.html" class="home-button"><i class="fas fa-home"></i> Home</a>
             <h1>LLM Text Transform</h1>
-            
+            <div class="transform-title-container">
+                <label for="transformTitle">Transform Title:</label>
+                <input type="text" id="transformTitle" placeholder="Enter a title for this transformation...">
+                <a href="https://openrouter.ai/models" target="_blank" title="Browse OpenRouter models">
+                    <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
             <div class="controls">
                 <button id="newBtn"><i class="fas fa-file"></i> New</button>
                 <button id="loadBtn"><i class="fas fa-file-upload"></i> Load</button>
@@ -34,16 +40,6 @@
                 <button id="cancelTransformBtn" style="display: none;"><i class="fas fa-stop"></i> Cancel</button>
                 <span id="transformProgress" style="display: none;"><i class="fas fa-spinner fa-spin"></i> Running step <span id="currentStepNum">0</span> of <span id="totalStepNum">0</span></span>
                 <button id="settings-button" title="Settings"><i class="fas fa-cog"></i></button>
-            </div>
-        </div>
-
-        <div class="comparison-meta">
-            <div class="title-row">
-                <label for="transformTitle">Transform Title:</label>
-                <input type="text" id="transformTitle" placeholder="Enter a title for this transformation...">
-                <a href="https://openrouter.ai/models" target="_blank" class="models-link" title="Browse OpenRouter models">
-                    <i class="fas fa-external-link-alt"></i> Models
-                </a>
             </div>
         </div>
 

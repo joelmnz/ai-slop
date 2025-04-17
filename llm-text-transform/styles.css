@@ -35,7 +35,7 @@ h1 {
 /* Header Container Layout */
 .header-container {
     display: flex;
-    justify-content: space-between;
+    align-items: baseline;
 }
 
 .header-container h1 {
@@ -150,7 +150,7 @@ textarea {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 8px;
-    justify-content: flex-end;
+    margin-left: auto;
     align-items: center;
     min-width: 150px;
     max-width: 70%;
@@ -1044,4 +1044,29 @@ button i {
         word-wrap: break-word;
         overflow-wrap: break-word;
     }
+}
+
+/* Header transform title group */
+.transform-title-container {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+.transform-title-container label {
+    font-weight: bold;
+    color: #bbbbbb;
+    padding-left: 20px;
+}
+.transform-title-container input[type="text"] {
+    width: auto;
+    min-width: 400px;
+    padding: 5px 8px;
+    font-size: 0.9rem;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+}
+.transform-title-container a {
+    color: #64d8ff;
 }
