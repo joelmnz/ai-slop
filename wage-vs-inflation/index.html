@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wage vs Inflation Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Wage vs Inflation Tracker</h1>
+            <p>Track how your wage increases compare to inflation over time</p>
+        </header>
+
+        <div class="main-sections">
+            <div class="input-section">
+                <h2>Add/Edit Data Point</h2>
+                <form id="dataForm">
+                    <div class="input-group">
+                        <label for="year">Year:</label>
+                        <input type="number" id="year" min="1900" max="2100" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="wages">Annual Wages ($):</label>
+                        <input type="number" id="wages" min="0" step="0.01" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="inflation">Inflation Rate (%) - Optional:</label>
+                        <input type="number" id="inflation" step="0.01" placeholder="Leave blank to keep existing value">
+                    </div>
+                    <button type="submit">Add Data Point</button>
+                </form>
+            </div>
+
+            <div class="data-table-section">
+                <h2>Data Points</h2>
+                <div class="table-container">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Wages ($)</th>
+                                <th>Inflation (%)</th>
+                                <th>Wage Change (%)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-actions">
+                    <button id="clearData">Clear All Data</button>
+                    <button id="exportData">Export Data</button>
+                    <button id="importData">Import Data</button>
+                    <button id="recalculateData">Recalculate</button>
+                    <input type="file" id="fileInput" accept=".csv" style="display: none;">
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h2>Wage Increase vs Inflation</h2>
+            <div class="chart-container">
+                <canvas id="wageChart"></canvas>
+            </div>
+        </div>
+
+        <div class="summary-section">
+            <h2>Summary</h2>
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <h3>Average Wage Growth</h3>
+                    <span id="avgWageGrowth">-</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Inflation</h3>
+                    <span id="avgInflation">-</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Real Wage Growth</h3>
+                    <span id="realWageGrowth">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
