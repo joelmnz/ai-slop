@@ -35,6 +35,12 @@ header p {
     opacity: 0.9;
 }
 
+.main-sections {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
 .input-section, .data-table-section, .chart-section, .summary-section {
     background: rgba(30, 41, 59, 0.9);
     border: 1px solid rgba(71, 85, 105, 0.3);
@@ -110,6 +116,7 @@ button:active {
 }
 
 .table-container {
+    width: 100%;
     overflow-x: auto;
     margin-bottom: 20px;
 }
@@ -224,6 +231,17 @@ tr:hover {
     }
 }
 
+@media (max-width: 900px) {
+    .main-sections {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .input-section, .data-table-section {
+        max-width: 100%;
+        min-width: 0;
+    }
+}
+
 .no-data {
     text-align: center;
     color: #718096;
@@ -259,4 +277,14 @@ tr:hover {
     margin-bottom: 10px;
     border: 1px solid rgba(59, 130, 246, 0.3);
     backdrop-filter: blur(5px);
+}
+
+.data-table-section {
+    flex: 2 1 0;
+    min-width: 0;
+    width: 100%;
+}
+
+#dataTable {
+    width: 100%;
 }

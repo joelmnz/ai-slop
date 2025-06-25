@@ -14,48 +14,50 @@
             <p>Track how your wage increases compare to inflation over time</p>
         </header>
 
-        <div class="input-section">
-            <h2>Add/Edit Data Point</h2>
-            <form id="dataForm">
-                <div class="input-group">
-                    <label for="year">Year:</label>
-                    <input type="number" id="year" min="1900" max="2100" required>
-                </div>
-                <div class="input-group">
-                    <label for="wages">Annual Wages ($):</label>
-                    <input type="number" id="wages" min="0" step="0.01" required>
-                </div>
-                <div class="input-group">
-                    <label for="inflation">Inflation Rate (%) - Optional:</label>
-                    <input type="number" id="inflation" step="0.01" placeholder="Leave blank to keep existing value">
-                </div>
-                <button type="submit">Add Data Point</button>
-            </form>
-        </div>
-
-        <div class="data-table-section">
-            <h2>Data Points</h2>
-            <div class="table-container">
-                <table id="dataTable">
-                    <thead>
-                        <tr>
-                            <th>Year</th>
-                            <th>Wages ($)</th>
-                            <th>Inflation (%)</th>
-                            <th>Wage Change (%)</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dataTableBody">
-                    </tbody>
-                </table>
+        <div class="main-sections">
+            <div class="input-section">
+                <h2>Add/Edit Data Point</h2>
+                <form id="dataForm">
+                    <div class="input-group">
+                        <label for="year">Year:</label>
+                        <input type="number" id="year" min="1900" max="2100" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="wages">Annual Wages ($):</label>
+                        <input type="number" id="wages" min="0" step="0.01" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="inflation">Inflation Rate (%) - Optional:</label>
+                        <input type="number" id="inflation" step="0.01" placeholder="Leave blank to keep existing value">
+                    </div>
+                    <button type="submit">Add Data Point</button>
+                </form>
             </div>
-            <div class="table-actions">
-                <button id="clearData">Clear All Data</button>
-                <button id="exportData">Export Data</button>
-                <button id="importData">Import Data</button>
-                <button id="recalculateData">Recalculate</button>
-                <input type="file" id="fileInput" accept=".csv" style="display: none;">
+
+            <div class="data-table-section">
+                <h2>Data Points</h2>
+                <div class="table-container">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Wages ($)</th>
+                                <th>Inflation (%)</th>
+                                <th>Wage Change (%)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-actions">
+                    <button id="clearData">Clear All Data</button>
+                    <button id="exportData">Export Data</button>
+                    <button id="importData">Import Data</button>
+                    <button id="recalculateData">Recalculate</button>
+                    <input type="file" id="fileInput" accept=".csv" style="display: none;">
+                </div>
             </div>
         </div>
 
