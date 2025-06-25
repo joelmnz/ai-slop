@@ -185,6 +185,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const sortedDataPoints = [...dataPoints].sort((a, b) => a.year - b.year);
         sortedDataPoints.forEach((point, index) => {
             const row = document.createElement('tr');
+            row.dataset.year = point.year;
+            row.dataset.wages = point.wages;
+            row.dataset.inflation = point.inflation;
             
             // Format values, showing N/A for invalid numbers
             const wagesDisplay = isNaN(point.wages) || !isFinite(point.wages) ? 'N/A' : point.wages.toFixed(2);
@@ -385,5 +388,49 @@ document.getElementById('exportData').addEventListener('click', () => {
         // Reset file input
         event.target.value = '';
     });
+    
+    // Add event delegation for row click to fill form
+    const dataForm = document.getElementById('dataForm');
+
+    if (dataTableBody && dataForm) {
+        dataTableBody.addEventListener('click', function(event) {
+            let tr = event.target;
+            // Traverse up to the row if a child is clicked
+            while (tr && tr.tagName !== 'TR') {
+                tr = tr.parentElement;
+            }
+            if (!tr || !tr.dataset || !tr.dataset.year) return;
+            // Get values from row cells
+            const year = tr.dataset.year;
+            const wages = tr.dataset.wages;
+            const inflation = tr.dataset.inflation;
+            // Fill the form
+            dataForm.year.value = year;
+            dataForm.wages.value = wages;
+            dataForm.inflation.value = inflation || '';
+            // Optionally, focus the first field
+            dataForm.year.focus();
+        });
+    }
+
+    // Patch table row rendering to add data attributes for each row
+    function renderTable(data) {
+        const tbody = document.getElementById('dataTableBody');
+        tbody.innerHTML = '';
+        data.forEach(point => {
+            const tr = document.createElement('tr');
+            tr.dataset.year = point.year;
+            tr.dataset.wages = point.wages;
+            tr.dataset.inflation = point.inflation;
+            tr.innerHTML = `
+                <td>${point.year}</td>
+                <td>${point.wages}</td>
+                <td>${point.inflation !== undefined ? point.inflation : ''}</td>
+                <td>${point.wageChange !== undefined ? point.wageChange : ''}</td>
+                <td><!-- Action buttons here --></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
 });
 
