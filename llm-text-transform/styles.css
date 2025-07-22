@@ -112,12 +112,64 @@ label { /* General label styling */
     display: flex;
     align-items: center;
     margin-bottom: 5px;
+    position: relative;
 }
 
 .input-reference-note {
     font-family: 'Courier New', Courier, monospace;
     font-size: smaller;
     margin-left: 10px;
+}
+
+/* Collapse button styling */
+.collapse-btn {
+    background-color: #444;
+    color: #e0e0e0;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: auto;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+}
+
+.collapse-btn:hover {
+    background-color: #555;
+    transform: scale(1.1);
+}
+
+.collapse-btn i {
+    transition: transform 0.3s ease;
+}
+
+/* Collapsed state for input column */
+#inputColumn.collapsed {
+    flex: 0 0 50px;
+    min-width: 50px;
+    max-width: 50px;
+    transition: all 0.3s ease;
+}
+
+#inputColumn.collapsed .input-reference-note,
+#inputColumn.collapsed .model-name-label,
+#inputColumn.collapsed textarea,
+#inputColumn.collapsed .markdown-view {
+    display: none;
+}
+
+#inputColumn.collapsed .collapse-btn i {
+    transform: rotate(180deg);
+}
+
+#inputColumn.collapsed .input-label-container {
+    justify-content: center;
+    margin-bottom: 0;
 }
 
 /* Input and Textarea Styling */
@@ -538,6 +590,36 @@ button i {
     color: #bbbbbb;
 }
 
+/* Step instructions header with expand button */
+.step-instructions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.expand-step-btn {
+    background-color: #6610f2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+}
+
+.expand-step-btn:hover {
+    background-color: #5a00e0;
+    transform: scale(1.1);
+}
+
 .step-instructions {
     width: 100%;
     resize: vertical;
@@ -694,6 +776,101 @@ button i {
     display: none;
     justify-content: center;
     align-items: center;
+}
+
+/* Step Editor Popup Styling */
+.step-editor-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1001;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.step-editor-popup {
+    width: 90vw;
+    height: 90vh;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    border: 1px solid #444;
+}
+
+.step-editor-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #6610f2;
+    border-bottom: 1px solid #444;
+}
+
+.step-editor-popup-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.step-editor-popup-content {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    flex: 1;
+    overflow: hidden;
+    background-color: #1e1e1e;
+}
+
+.step-editor-textarea {
+    flex: 1;
+    width: 100%;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 15px;
+    font-size: 1rem;
+    font-family: monospace;
+    resize: none;
+    outline: none;
+}
+
+.step-editor-textarea:focus {
+    border-color: #6610f2;
+    box-shadow: 0 0 0 2px rgba(102, 16, 242, 0.2);
+}
+
+.step-editor-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #444;
+}
+
+.step-editor-save-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.step-editor-save-btn:hover {
+    background-color: #218838;
 }
 
 .response-popup {

@@ -63,6 +63,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const printBtn = document.getElementById('printBtn');
     const toastContainer = document.getElementById('toastContainer');
     const settingsButton = document.getElementById('settings-button');
+    const collapseInputBtn = document.getElementById('collapseInputBtn');
+    const inputColumn = document.getElementById('inputColumn');
 
     // --- State ---
     let markdownViewActive = false;
@@ -193,21 +195,99 @@ document.addEventListener('DOMContentLoaded', async () => {
         overlay.style.display = 'flex';
     }
 
-    // --- Configure marked options ---
-    marked.setOptions({
-        highlight: function(code, lang) {
-            if (typeof hljs === 'undefined') {
-                return code;
+    // Function to show the step editor popup
+    let stepEditorOverlay = null;
+    let currentEditingStepId = null;
+    
+    function showStepEditorPopup(stepId) {
+        // Create popup if it doesn't exist
+        if (!stepEditorOverlay) {
+            const popupTemplate = templates.stepEditorPopup();
+            stepEditorOverlay = renderTemplate(popupTemplate, document.body);
+            
+            // Add event listeners for the popup
+            const closeBtn = stepEditorOverlay.querySelector('#closeStepEditor');
+            const cancelBtn = stepEditorOverlay.querySelector('#cancelStepEditor');
+            const saveBtn = stepEditorOverlay.querySelector('#saveStepEditor');
+            
+            closeBtn.addEventListener('click', hideStepEditorPopup);
+            cancelBtn.addEventListener('click', hideStepEditorPopup);
+            saveBtn.addEventListener('click', saveStepEditorContent);
+            
+            // Close on overlay click
+            stepEditorOverlay.addEventListener('click', (e) => {
+                if (e.target === stepEditorOverlay) {
+                    hideStepEditorPopup();
+                }
+            });
+        }
+        
+        // Set current editing step
+        currentEditingStepId = stepId;
+        
+        // Update popup title
+        const popupTitle = stepEditorOverlay.querySelector('#stepEditorTitle');
+        if (popupTitle) {
+            popupTitle.textContent = `Edit Step ${stepId} Instructions`;
+        }
+        
+        // Get current step content and populate textarea
+        const stepTextarea = document.getElementById(`stepInstructions${stepId}`);
+        const editorTextarea = stepEditorOverlay.querySelector('#stepEditorTextarea');
+        
+        if (stepTextarea && editorTextarea) {
+            editorTextarea.value = stepTextarea.value;
+        }
+        
+        // Show the popup
+        stepEditorOverlay.style.display = 'flex';
+        
+        // Focus the textarea
+        setTimeout(() => {
+            editorTextarea.focus();
+        }, 100);
+    }
+    
+    function hideStepEditorPopup() {
+        if (stepEditorOverlay) {
+            stepEditorOverlay.style.display = 'none';
+        }
+        currentEditingStepId = null;
+    }
+    
+    function saveStepEditorContent() {
+        if (currentEditingStepId) {
+            const editorTextarea = stepEditorOverlay.querySelector('#stepEditorTextarea');
+            const stepTextarea = document.getElementById(`stepInstructions${currentEditingStepId}`);
+            
+            if (editorTextarea && stepTextarea) {
+                stepTextarea.value = editorTextarea.value;
+                // Trigger input event to update any listeners
+                stepTextarea.dispatchEvent(new Event('input'));
             }
             
-            if (lang && hljs.getLanguage(lang)) {
-                return hljs.highlight(code, { language: lang }).value;
-            }
-            return hljs.highlightAuto(code).value;
-        },
-        breaks: true,
-        gfm: true
-    });
+            setStatus(`Step ${currentEditingStepId} instructions updated`, 'success');
+            hideStepEditorPopup();
+        }
+    }
+
+    // --- Configure marked options ---
+    if (typeof marked !== 'undefined') {
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (typeof hljs === 'undefined') {
+                    return code;
+                }
+                
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true,
+            gfm: true
+        });
+    }
 
     // --- Templates ---
     const templates = {
@@ -236,10 +316,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 },
                 {
-                    type: 'label',
-                    classes: ['step-instructions-label'],
-                    attributes: { for: `stepInstructions${id}` },
-                    text: `Step ${id} Instructions:`
+                    type: 'div',
+                    classes: ['step-instructions-header'],
+                    children: [
+                        {
+                            type: 'label',
+                            classes: ['step-instructions-label'],
+                            attributes: { for: `stepInstructions${id}` },
+                            text: `Step ${id} Instructions:`
+                        },
+                        {
+                            type: 'button',
+                            classes: ['expand-step-btn'],
+                            attributes: {
+                                'data-step-id': id,
+                                'title': 'Open in popup editor',
+                                'type': 'button'
+                            },
+                            html: '<i class="fas fa-expand"></i>'
+                        }
+                    ]
                 },
                 {
                     type: 'textarea',
@@ -340,6 +436,68 @@ document.addEventListener('DOMContentLoaded', async () => {
                                     type: 'pre',
                                     classes: ['response-content'],
                                     attributes: { id: 'responseContent' }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }),
+        stepEditorPopup: () => ({
+            type: 'div',
+            classes: ['step-editor-popup-overlay'],
+            attributes: { id: 'stepEditorPopup' },
+            children: [
+                {
+                    type: 'div',
+                    classes: ['step-editor-popup'],
+                    children: [
+                        {
+                            type: 'div',
+                            classes: ['step-editor-popup-header'],
+                            children: [
+                                {
+                                    type: 'h3',
+                                    attributes: { id: 'stepEditorTitle' },
+                                    text: 'Edit Step Instructions',
+                                },
+                                {
+                                    type: 'button',
+                                    classes: ['close-popup-btn'],
+                                    attributes: { id: 'closeStepEditor' },
+                                    html: '<i class="fas fa-times"></i>'
+                                }
+                            ]
+                        },
+                        {
+                            type: 'div',
+                            classes: ['step-editor-popup-content'],
+                            children: [
+                                {
+                                    type: 'textarea',
+                                    classes: ['step-editor-textarea'],
+                                    attributes: { 
+                                        id: 'stepEditorTextarea',
+                                        placeholder: 'Enter detailed transformation instructions...'
+                                    }
+                                },
+                                {
+                                    type: 'div',
+                                    classes: ['step-editor-buttons'],
+                                    children: [
+                                        {
+                                            type: 'button',
+                                            classes: ['close-popup-btn'],
+                                            attributes: { id: 'cancelStepEditor' },
+                                            text: 'Cancel'
+                                        },
+                                        {
+                                            type: 'button',
+                                            classes: ['step-editor-save-btn'],
+                                            attributes: { id: 'saveStepEditor' },
+                                            html: '<i class="fas fa-save"></i> Save'
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -868,6 +1026,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         
+        // Handle expand step button clicks
+        if (event.target.classList.contains('expand-step-btn') || 
+            event.target.closest('.expand-step-btn')) {
+            
+            const button = event.target.classList.contains('expand-step-btn') ? 
+                event.target : event.target.closest('.expand-step-btn');
+            
+            const stepId = button.getAttribute('data-step-id');
+            if (stepId) {
+                showStepEditorPopup(stepId);
+            }
+        }
+        
         // Handle model lookup button clicks
         if (event.target.classList.contains('model-lookup-btn') || 
             event.target.closest('.model-lookup-btn')) {
@@ -942,6 +1113,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     toggleMarkdownBtn.addEventListener('click', toggleMarkdownView);
     
     printBtn.addEventListener('click', printOutput);
+    
+    // Collapse input column functionality
+    collapseInputBtn.addEventListener('click', () => {
+        inputColumn.classList.toggle('collapsed');
+        const isCollapsed = inputColumn.classList.contains('collapsed');
+        
+        // Update tooltip text
+        collapseInputBtn.title = isCollapsed ? 'Expand Input' : 'Collapse Input';
+        
+        setStatus(isCollapsed ? 'Input column collapsed' : 'Input column expanded', 'info');
+    });
     
     // Settings button
     if (settingsButton) {
