@@ -11,6 +11,8 @@
             window.marked = function(text) { return text; };
         }
     </script>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.3/purify.min.js" defer></script>
@@ -27,12 +29,15 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
-<body>
+<body data-theme="dark">
     <div class="header">
         <a href="https://github.com/joelmnz/github-release-notes-watcher" class="github-icon" target="_blank" title="View on GitHub">
             <i class="fab fa-github"></i>
         </a>
         <h1>GitHub Release Notes Watcher</h1>
+        <button id="settings-button">
+            <i class="fas fa-cog"></i> Settings
+        </button>
     </div>
     <div id="loading-message">Loading...</div>
     <div id="content" style="display: none;">
@@ -272,5 +277,6 @@
         }
 
     </script>
+    <script src="../js/settings.js"></script>
 </body>
 </html>

@@ -16,20 +16,15 @@
     <script>
         mermaid.initialize({ startOnLoad: true });
     </script>
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/style.css">
     <style>
-        :root {
-            --dark-bg: #1e1e1e;
-            --dark-text: #e0e0e0;
-            --dark-border: #444;
-            --dark-accent: #2a2a2a;
-        }
-
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: var(--dark-bg);
-            color: var(--dark-text);
+            background-color: var(--theme-bg);
+            color: var(--theme-text);
         }
 
         .container {
@@ -55,7 +50,7 @@
 
         h1 {
             margin-top: 0;
-            color: var(--dark-text);
+            color: var(--theme-text);
         }
 
         textarea {
@@ -63,19 +58,19 @@
             padding: 15px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
-            border: 1px solid var(--dark-border);
+            border: 1px solid var(--theme-border);
             border-radius: 4px;
             resize: none;
-            background-color: var(--dark-accent);
-            color: var(--dark-text);
+            background-color: var(--theme-accent);
+            color: var(--theme-text);
         }
 
         .preview-container {
             flex: 1;
             overflow: auto;
-            border: 1px solid var(--dark-border);
+            border: 1px solid var(--theme-border);
             border-radius: 4px;
-            background-color: var(--dark-accent);
+            background-color: var(--theme-accent);
             position: relative;
         }
 
@@ -99,16 +94,16 @@
 
         button {
             padding: 8px 16px;
-            background-color: #4a4a4a;
-            color: white;
-            border: none;
+            background-color: var(--theme-accent);
+            color: var(--theme-text);
+            border: 1px solid var(--theme-border);
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
         }
 
         button:hover {
-            background-color: #5a5a5a;
+            background-color: var(--theme-hover);
         }
 
         .editor-header {
@@ -118,8 +113,8 @@
         }
 
         .home-button {
-            background-color: #4a4a4a;
-            color: white;
+            background-color: var(--theme-accent);
+            color: var(--theme-text);
             text-decoration: none;
             padding: 8px 16px;
             border-radius: 4px;
@@ -128,10 +123,11 @@
             gap: 8px;
             font-size: 14px;
             margin-right: 15px;
+            border: 1px solid var(--theme-border);
         }
 
         .home-button:hover {
-            background-color: #5a5a5a;
+            background-color: var(--theme-hover);
         }
 
         /* Print styles */
@@ -262,12 +258,15 @@
         }
     </style>
 </head>
-<body>
+<body data-theme="dark">
     <div class="container">
         <div class="editor-pane">
             <div class="editor-header">
                 <a href="../index.html" class="home-button"><i class="fas fa-home"></i> Home</a>
                 <h1>Markdown Editor</h1>
+                <button id="settings-button" class="home-button" style="margin-left: auto;">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
             </div>
             <textarea id="markdown-input" placeholder="Enter your markdown text here..."></textarea>
             <div class="button-group">
@@ -421,5 +420,6 @@ The printed version will only include the A4 paper content, not the editor inter
             }
         });
     </script>
+    <script src="../js/settings.js"></script>
 </body>
 </html>
