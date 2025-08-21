@@ -1,4 +1,52 @@
 /**
+ * Theme Manager for AI Slop
+ * Handles dark/light theme switching and persistence
+ */
+class ThemeManager {
+    constructor() {
+        this.themeKey = 'ai_slop_theme';
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+        } else {
+            this.init();
+        }
+    }
+
+    init() {
+        const storedTheme = localStorage.getItem(this.themeKey);
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let currentTheme = storedTheme;
+
+        if (!currentTheme) {
+            currentTheme = systemPrefersDark ? 'dark' : 'light';
+        }
+
+        this.setTheme(currentTheme);
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (!localStorage.getItem(this.themeKey)) {
+                this.setTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+    }
+
+    setTheme(theme) {
+        document.body.setAttribute('data-theme', theme);
+        localStorage.setItem(this.themeKey, theme);
+        const toggle = document.getElementById('theme-toggle');
+        if (toggle) {
+            toggle.checked = theme === 'dark';
+        }
+    }
+
+    toggleTheme() {
+        const currentTheme = document.body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        this.setTheme(newTheme);
+    }
+}
+
+/**
  * Settings Manager for AI Slop
  * Handles secure storage of API keys and other settings
  */
@@ -37,6 +85,17 @@ class SettingsManager {
                         </div>
                         <div class="settings-modal-body">
                             <div class="settings-form">
+                                <div class="settings-group">
+                                    <label>Theme</label>
+                                    <div class="theme-toggle-container">
+                                        <i class="fas fa-sun"></i>
+                                        <label class="theme-toggle-switch">
+                                            <input type="checkbox" id="theme-toggle">
+                                            <span class="theme-toggle-slider"></span>
+                                        </label>
+                                        <i class="fas fa-moon"></i>
+                                    </div>
+                                </div>
                                 <div class="settings-group">
                                     <label for="openai-base-url">OpenAI Base URL:</label>
                                     <input type="text" id="openai-base-url" placeholder="https://api.openai.com/v1" />
@@ -145,6 +204,16 @@ class SettingsManager {
         const clearBtn = document.getElementById('clear-settings');
         if (clearBtn) {
             clearBtn.addEventListener('click', () => this.clearSettings());
+        }
+
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('change', () => {
+                if (window.themeManager) {
+                    window.themeManager.toggleTheme();
+                }
+            });
         }
     }
 
@@ -420,33 +489,24 @@ class SettingsManager {
     }
 }
 
-// Initialize settings manager when DOM is ready
+// Initialize managers when DOM is ready
 let settingsManager;
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        settingsManager = new SettingsManager();
-    });
-} else {
-    // DOM is already loaded
+let themeManager;
+
+function initializeManagers() {
+    themeManager = new ThemeManager();
     settingsManager = new SettingsManager();
+
+    // Expose to global scope
+    window.aiSettings = {
+        openSettings: () => settingsManager.openSettings(),
+        getSettings: () => settingsManager.getSettings()
+    };
+    window.themeManager = themeManager;
 }
 
-// Expose to global scope
-window.aiSettings = {
-    openSettings: () => {
-        if (settingsManager) {
-            return settingsManager.openSettings();
-        } else {
-            console.error('Settings manager not initialized yet');
-            return Promise.reject(new Error('Settings manager not initialized yet'));
-        }
-    },
-    getSettings: () => {
-        if (settingsManager) {
-            return settingsManager.getSettings();
-        } else {
-            console.error('Settings manager not initialized yet');
-            return Promise.reject(new Error('Settings manager not initialized yet'));
-        }
-    }
-};
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeManagers);
+} else {
+    initializeManagers();
+}
