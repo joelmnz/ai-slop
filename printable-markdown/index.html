@@ -53,6 +53,40 @@
             overflow: hidden;
         }
 
+        .preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .maximize-btn {
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 8px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .maximize-btn:hover {
+            background-color: #5a5a5a;
+        }
+
+        /* Maximized state styles */
+        .container.maximized .editor-pane {
+            display: none;
+        }
+
+        .container.maximized .preview-pane {
+            flex: none;
+            width: 100%;
+        }
+
         h1 {
             margin-top: 0;
             color: var(--dark-text);
@@ -162,7 +196,7 @@
                 page-break-after: always;
             }
 
-            .home-button {
+            .home-button, .maximize-btn {
                 display: none;
             }
         }
@@ -277,7 +311,13 @@
             </div>
         </div>
         <div class="preview-pane">
-            <h1>A4 Preview</h1>
+            <div class="preview-header">
+                <h1>A4 Preview</h1>
+                <button class="maximize-btn" id="maximize-btn">
+                    <i class="fas fa-expand"></i>
+                    <span>Maximize</span>
+                </button>
+            </div>
             <div class="preview-container">
                 <div class="a4-paper" id="markdown-output"></div>
             </div>
@@ -291,6 +331,8 @@
             const printBtn = document.getElementById('print-btn');
             const clearBtn = document.getElementById('clear-btn');
             const sampleBtn = document.getElementById('sample-btn');
+            const maximizeBtn = document.getElementById('maximize-btn');
+            const container = document.querySelector('.container');
 
             // Initialize highlight.js here instead
             if (typeof hljs !== 'undefined') {
@@ -413,6 +455,20 @@ console.log(result); // 15
 
 The printed version will only include the A4 paper content, not the editor interface.`;
                 renderMarkdown();
+            });
+
+            maximizeBtn.addEventListener('click', function() {
+                const isMaximized = container.classList.contains('maximized');
+                
+                if (isMaximized) {
+                    // Restore to normal view
+                    container.classList.remove('maximized');
+                    maximizeBtn.innerHTML = '<i class="fas fa-expand"></i><span>Maximize</span>';
+                } else {
+                    // Maximize the preview
+                    container.classList.add('maximized');
+                    maximizeBtn.innerHTML = '<i class="fas fa-compress"></i><span>Minimize</span>';
+                }
             });
 
             // Initial render if there's content (e.g., from browser cache)
