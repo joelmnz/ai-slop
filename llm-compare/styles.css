@@ -1,48 +1,3 @@
-/* Basic Reset and Dark Theme */
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-html, body {
-    height: 100%;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: #121212; /* Dark background */
-    color: #e0e0e0; /* Light text */
-    font-size: 16px;
-    line-height: 1.5;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Main Container */
-.container {
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    gap: 20px; /* Space between sections */
-    flex-grow: 1; /* Allow container to grow */
-    overflow: hidden; /* Prevent body scrollbars */
-}
-
-h1 {
-    color: #ffffff;
-    margin-bottom: 10px;
-    text-align: left; /* Changed from center to left */
-}
-
-/* Header Container Layout */
-.header-container {
-    display: flex;
-    justify-content: space-between;
-}
-
-.header-container h1 {
-    margin: 0;
-    padding-top: 10px;
-}
-
 /* Metadata Section (Title & Prompt) */
 .comparison-meta {
     display: flex;
@@ -105,35 +60,13 @@ h1 {
     transform: rotate(180deg);
 }
 
-label { /* General label styling */
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #bbbbbb;
-    display: block; /* Ensure label takes its own line */
-}
-
-/* Input and Textarea Styling */
-input[type="text"],
-input[type="number"], /* Added number input styling */
-textarea {
-    width: 100%;
-    padding: 10px;
-    background-color: #2a2a2a; /* Darker input background */
-    color: #e0e0e0; /* Light text */
-    border: 1px solid #444; /* Subtle border */
-    border-radius: 4px;
-    font-size: 1rem;
-}
 input[type="number"] {
-     width: auto; /* Allow number input to size naturally */
-     min-width: 60px; /* Ensure it's not too small */
-     margin-bottom: 0; /* Reset margin for rating input container */
-}
-
-textarea {
-    resize: vertical; /* Allow vertical resize */
-    min-height: 60px; /* Minimum height for prompt */
-    margin-bottom: 0; /* Reset margin for textareas */
+    width: auto;
+    /* Allow number input to size naturally */
+    min-width: 60px;
+    /* Ensure it's not too small */
+    margin-bottom: 0;
+    /* Reset margin for rating input container */
 }
 
 /* Controls Section */
@@ -154,27 +87,9 @@ textarea {
     padding: 8px 12px;
 }
 
-/* Button Styling */
-button {
-    padding: 10px 15px;
-    background-color: #007bff; /* Primary button color (Add Column) */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-button:hover {
-    background-color: #0056b3; /* Darker shade on hover */
-}
-
 button#newBtn {
-     background-color: #6c757d; /* Grey for new/reset */
+    background-color: #6c757d;
+    /* Grey for new/reset */
 }
 button#newBtn:hover {
      background-color: #5a6268;
@@ -525,13 +440,4 @@ button#toggleMarkdownBtn:hover {
 /* Icon styling within buttons */
 button i {
     font-size: 1rem;
-}
-
-/* Settings button styling */
-button#settings-button {
-    background-color: #6c757d; /* Grey for settings */
-}
-
-button#settings-button:hover {
-    background-color: #5a6268;
 }
